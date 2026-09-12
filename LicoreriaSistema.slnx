@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="LibreriaSistema.Aplicacion/LibreriaSistema.Aplicacion.csproj" />
+  <Project Path="LibreriaSistema.Dominio/LibreriaSistema.Dominio.csproj" />
+  <Project Path="LicoreriaSistema.Datos/LicoreriaSistema.Datos.csproj" />
+  <Project Path="LicoreriaSistema.Web/LicoreriaSistema.Web.csproj" />
+</Solution>
