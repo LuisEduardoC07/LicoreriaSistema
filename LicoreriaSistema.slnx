@@ -1,6 +1,10 @@
 <Solution>
-  <Project Path="LibreriaSistema.Aplicacion/LibreriaSistema.Aplicacion.csproj" />
-  <Project Path="LibreriaSistema.Dominio/LibreriaSistema.Dominio.csproj" />
+  <Folder Name="/LicoreriaSistema.Aplicacion/">
+    <Project Path="LicoreriaSistema.Aplicacion/LibreriaSistema.Aplicacion.csproj" />
+  </Folder>
+  <Folder Name="/LicoreriaSistema.Dominio/">
+    <Project Path="LicoreriaSistema.Dominio/LibreriaSistema.Dominio.csproj" />
+  </Folder>
   <Project Path="LicoreriaSistema.Datos/LicoreriaSistema.Datos.csproj" />
   <Project Path="LicoreriaSistema.Web/LicoreriaSistema.Web.csproj" />
 </Solution>
