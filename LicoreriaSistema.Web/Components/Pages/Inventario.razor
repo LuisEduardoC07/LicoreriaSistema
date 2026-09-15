@@ -1,0 +1,803 @@
+﻿@page "/inventario"
+
+@attribute [Authorize]
+
+@rendermode InteractiveServer
+
+@using LicoreriaSistema.Dominio.Entidades
+@using LibreriaSistema.Aplicacion.Servicios
+
+@inject InventarioService InventarioService
+
+<PageTitle>Inventario</PageTitle>
+
+<div class="inventario-page">
+
+    <div class="page-header">
+        <div>
+            <h1>Inventario</h1>
+            <p class="page-subtitle">
+                Controla las existencias de productos por sucursal.
+            </p>
+        </div>
+
+        <button type="button"
+                class="btn btn-primary"
+                @onclick="PrepararEntrada"
+                disabled="@(SucursalSeleccionadaId <= 0)">
+            <span class="button-icon">+</span>
+            Registrar entrada
+        </button>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(Mensaje))
+    {
+        <div class="alert @(MensajeExitoso ? "alert-success" : "alert-danger") alert-dismissible-custom"
+             role="alert">
+            @Mensaje
+
+            <button type="button"
+                    class="alert-close"
+                    @onclick="LimpiarMensaje">
+                ×
+            </button>
+        </div>
+    }
+
+    @if (CargandoInicial)
+    {
+        <div class="loading-card">
+            <div class="spinner-border" role="status"></div>
+            <span>Cargando inventario...</span>
+        </div>
+    }
+    else if (ListaSucursales.Count == 0)
+    {
+        <div class="empty-state">
+            <div class="empty-icon">▣</div>
+            <h3>No hay sucursales activas</h3>
+            <p>
+                Primero debes registrar una sucursal activa para comenzar a manejar inventario.
+            </p>
+        </div>
+    }
+    else
+    {
+        <div class="selector-card">
+
+            <div class="selector-field">
+                <label for="sucursalInventario">
+                    Sucursal
+                </label>
+
+                <select id="sucursalInventario"
+                        class="form-select"
+                        @bind="SucursalSeleccionadaId"
+                        @bind:after="CambioSucursal">
+
+                    <option value="0">
+                        Seleccionar sucursal
+                    </option>
+
+                    @foreach (var sucursal in ListaSucursales)
+                    {
+                        <option value="@sucursal.Id">
+                            @sucursal.Nombre
+                        </option>
+                    }
+
+                </select>
+            </div>
+
+            @if (SucursalSeleccionadaId > 0)
+            {
+                <div class="inventory-summary">
+
+                    <div class="summary-item">
+                        <span class="summary-label">Productos registrados</span>
+                        <strong>@InventariosFiltrados.Count</strong>
+                    </div>
+
+                    <div class="summary-item warning">
+                        <span class="summary-label">Stock bajo</span>
+                        <strong>@CantidadStockBajo</strong>
+                    </div>
+
+                    <div class="summary-item danger">
+                        <span class="summary-label">Sin existencia</span>
+                        <strong>@CantidadSinExistencia</strong>
+                    </div>
+
+                </div>
+            }
+
+        </div>
+
+        @if (MostrarFormularioEntrada)
+        {
+            <div class="form-card">
+
+                <div class="form-card-header">
+
+                    <div>
+                        <h2>Registrar entrada de inventario</h2>
+                        <p>
+                            Agrega mercancía a la sucursal seleccionada.
+                        </p>
+                    </div>
+
+                    <button type="button"
+                            class="btn-close-custom"
+                            @onclick="CancelarEntrada">
+                        ×
+                    </button>
+
+                </div>
+
+                <div class="form-grid">
+
+                    <div class="form-field field-wide">
+                        <label for="buscarProductoEntrada">
+                            Producto <span class="required">*</span>
+                        </label>
+
+                        <input id="buscarProductoEntrada"
+                               type="text"
+                               class="form-control"
+                               placeholder="Buscar por nombre o código de barras..."
+                               @bind="TextoProductoEntrada"
+                               @bind:event="oninput" />
+
+                        <select class="form-select mt-2"
+                                @bind="ProductoEntradaId">
+
+                            <option value="0">
+                                Seleccionar producto
+                            </option>
+
+                            @foreach (var producto in ProductosDisponiblesParaEntrada)
+                            {
+                                <option value="@producto.Id">
+                                    @producto.Nombre — @producto.Codigo
+                                </option>
+                            }
+
+                        </select>
+                    </div>
+
+                    <div class="form-field">
+
+                        <label for="cantidadEntrada">
+                            Cantidad <span class="required">*</span>
+                        </label>
+
+                        <input id="cantidadEntrada"
+                               type="number"
+                               min="0.01"
+                               step="0.01"
+                               class="form-control"
+                               @bind="CantidadEntrada" />
+
+                    </div>
+
+                    <div class="form-field">
+
+                        <label for="stockMinimo">
+                            Stock mínimo
+                        </label>
+
+                        <input id="stockMinimo"
+                               type="number"
+                               min="0"
+                               step="0.01"
+                               class="form-control"
+                               @bind="StockMinimoEntrada" />
+
+                    </div>
+
+                    <div class="form-field">
+
+                        <label for="stockMaximo">
+                            Stock máximo
+                        </label>
+
+                        <input id="stockMaximo"
+                               type="number"
+                               min="0"
+                               step="0.01"
+                               class="form-control"
+                               @bind="StockMaximoEntrada" />
+
+                    </div>
+
+                </div>
+
+                <div class="form-actions">
+
+                    <button type="button"
+                            class="btn btn-secondary"
+                            @onclick="CancelarEntrada"
+                            disabled="@GuardandoEntrada">
+                        Cancelar
+                    </button>
+
+                    <button type="button"
+                            class="btn btn-primary"
+                            @onclick="GuardarEntrada"
+                            disabled="@GuardandoEntrada">
+
+                        @if (GuardandoEntrada)
+                        {
+                            <span class="spinner-border spinner-border-sm me-2"></span>
+                        }
+
+                        Registrar entrada
+                    </button>
+
+                </div>
+
+            </div>
+        }
+
+        <div class="toolbar-card">
+
+            <div class="search-box">
+                <span class="search-icon">⌕</span>
+
+                <input type="text"
+                       class="form-control"
+                       placeholder="Buscar por producto o código de barras..."
+                       @bind="TextoBusqueda"
+                       @bind:event="oninput" />
+            </div>
+
+            <button type="button"
+                    class="filter-button @(MostrarSoloStockBajo ? "active" : "")"
+                    @onclick="AlternarStockBajo">
+                @(MostrarSoloStockBajo ? "Solo stock bajo" : "Todos")
+            </button>
+
+        </div>
+
+        <div class="table-card">
+
+            @if (CargandoInventario)
+            {
+                <div class="loading-card">
+                    <div class="spinner-border" role="status"></div>
+                    <span>Cargando existencias...</span>
+                </div>
+            }
+            else if (SucursalSeleccionadaId <= 0)
+            {
+                <div class="empty-state">
+                    <div class="empty-icon">▣</div>
+                    <h3>Selecciona una sucursal</h3>
+                    <p>
+                        Selecciona una sucursal para consultar su inventario.
+                    </p>
+                </div>
+            }
+            else if (InventariosFiltrados.Count == 0)
+            {
+                <div class="empty-state">
+                    <div class="empty-icon">▦</div>
+                    <h3>No hay existencias registradas</h3>
+                    <p>
+                        Puedes utilizar "Registrar entrada" para agregar el primer producto.
+                    </p>
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+
+                    <table class="table inventory-table">
+
+                        <thead>
+                            <tr>
+                                <th>Producto</th>
+                                <th>Código</th>
+                                <th>Categoría</th>
+                                <th class="text-end">Existencia</th>
+                                <th class="text-end">Mínimo</th>
+                                <th class="text-end">Máximo</th>
+                                <th class="text-center">Estado</th>
+                                <th class="text-end">Acciones</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+
+                            @foreach (var inventario in InventariosFiltrados)
+                            {
+                                <tr>
+
+                                    <td>
+                                        <div class="product-name">
+                                            <span class="product-dot"></span>
+
+                                            <div>
+                                                <strong>
+                                                    @inventario.Producto.Nombre
+                                                </strong>
+
+                                                @if (!string.IsNullOrWhiteSpace(inventario.Producto.Descripcion))
+                                                {
+                                                    <small>
+                                                        @inventario.Producto.Descripcion
+                                                    </small>
+                                                }
+                                            </div>
+                                        </div>
+                                    </td>
+
+                                    <td>
+                                        <code class="barcode-code">
+                                            @inventario.Producto.Codigo
+                                        </code>
+                                    </td>
+
+                                    <td>
+                                        <span class="category-badge">
+                                            @inventario.Producto.Categoria.Nombre
+                                        </span>
+                                    </td>
+
+                                    <td class="text-end">
+                                        <strong>
+                                            @inventario.Cantidad.ToString("N2")
+                                        </strong>
+                                    </td>
+
+                                    <td class="text-end">
+                                        @inventario.StockMinimo.ToString("N2")
+                                    </td>
+
+                                    <td class="text-end">
+                                        @(inventario.StockMaximo <= 0
+                                            ? "Sin límite"
+                                            : inventario.StockMaximo.ToString("N2"))
+                                    </td>
+
+                                    <td class="text-center">
+                                        @if (inventario.Cantidad <= 0)
+                                        {
+                                            <span class="status-badge danger">
+                                                Sin existencia
+                                            </span>
+                                        }
+                                        else if (inventario.StockMinimo > 0 &&
+                                                 inventario.Cantidad <= inventario.StockMinimo)
+                                        {
+                                            <span class="status-badge warning">
+                                                Stock bajo
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="status-badge active">
+                                                Disponible
+                                            </span>
+                                        }
+                                    </td>
+
+                                    <td class="text-end">
+                                        <button type="button"
+                                                class="btn-action edit"
+                                                @onclick="() => PrepararConfiguracion(inventario)">
+                                            Stock
+                                        </button>
+
+                                        <button type="button"
+                                                class="btn-action enable"
+                                                @onclick="() => PrepararEntradaProducto(inventario)">
+                                            Entrada
+                                        </button>
+                                    </td>
+
+                                </tr>
+                            }
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+            }
+
+        </div>
+    }
+
+</div>
+
+@code {
+
+    private List<Sucursal> ListaSucursales { get; set; } = new();
+
+    private List<Producto> ListaProductos { get; set; } = new();
+
+    private List<InventarioSucursal> ListaInventarios { get; set; } = new();
+
+    private int SucursalSeleccionadaId { get; set; }
+
+    private int ProductoEntradaId { get; set; }
+
+    private string TextoBusqueda { get; set; } = string.Empty;
+
+    private string TextoProductoEntrada { get; set; } = string.Empty;
+
+    private decimal CantidadEntrada { get; set; }
+
+    private decimal StockMinimoEntrada { get; set; }
+
+    private decimal StockMaximoEntrada { get; set; }
+
+    private bool MostrarSoloStockBajo { get; set; }
+
+    private bool MostrarFormularioEntrada { get; set; }
+
+    private bool CargandoInicial { get; set; }
+
+    private bool CargandoInventario { get; set; }
+
+    private bool GuardandoEntrada { get; set; }
+
+    private bool EditandoConfiguracion { get; set; }
+
+    private int InventarioEditandoId { get; set; }
+
+    private string Mensaje { get; set; } = string.Empty;
+
+    private bool MensajeExitoso { get; set; }
+
+    private List<Producto> ProductosDisponiblesParaEntrada =>
+        ListaProductos
+            .Where(p =>
+                p.Activo &&
+                (
+                    string.IsNullOrWhiteSpace(TextoProductoEntrada) ||
+                    p.Nombre.Contains(
+                        TextoProductoEntrada.Trim(),
+                        StringComparison.OrdinalIgnoreCase) ||
+                    p.Codigo.Contains(
+                        TextoProductoEntrada.Trim(),
+                        StringComparison.OrdinalIgnoreCase)))
+            .OrderBy(p => p.Nombre)
+            .ToList();
+
+    private List<InventarioSucursal> InventariosFiltrados
+    {
+        get
+        {
+            IEnumerable<InventarioSucursal> consulta =
+                ListaInventarios;
+
+            if (MostrarSoloStockBajo)
+            {
+                consulta = consulta.Where(i =>
+                    i.Cantidad <= 0 ||
+                    (
+                        i.StockMinimo > 0 &&
+                        i.Cantidad <= i.StockMinimo));
+            }
+
+            if (!string.IsNullOrWhiteSpace(TextoBusqueda))
+            {
+                var busqueda =
+                    TextoBusqueda.Trim();
+
+                consulta = consulta.Where(i =>
+                    i.Producto.Nombre.Contains(
+                        busqueda,
+                        StringComparison.OrdinalIgnoreCase) ||
+                    i.Producto.Codigo.Contains(
+                        busqueda,
+                        StringComparison.OrdinalIgnoreCase));
+            }
+
+            return consulta
+                .OrderBy(i => i.Producto.Nombre)
+                .ToList();
+        }
+    }
+
+    private int CantidadStockBajo =>
+        ListaInventarios.Count(i =>
+            i.StockMinimo > 0 &&
+            i.Cantidad > 0 &&
+            i.Cantidad <= i.StockMinimo);
+
+    private int CantidadSinExistencia =>
+        ListaInventarios.Count(i =>
+            i.Cantidad <= 0);
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarInicialAsync();
+    }
+
+    private async Task CargarInicialAsync()
+    {
+        CargandoInicial = true;
+
+        try
+        {
+            var sucursales =
+                await InventarioService
+                    .ObtenerSucursalesActivasAsync();
+
+            var productos =
+                await InventarioService
+                    .ObtenerProductosActivosAsync();
+
+            ListaSucursales =
+                sucursales.ToList();
+
+            ListaProductos =
+                productos.ToList();
+
+            if (ListaSucursales.Count > 0)
+            {
+                SucursalSeleccionadaId =
+                    ListaSucursales[0].Id;
+
+                await CargarInventarioAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            MostrarMensaje(
+                false,
+                $"No fue posible cargar el inventario: {ex.Message}");
+        }
+        finally
+        {
+            CargandoInicial = false;
+        }
+    }
+
+    private async Task CambioSucursal()
+    {
+        await CargarInventarioAsync();
+
+        LimpiarMensaje();
+    }
+
+    private async Task CargarInventarioAsync()
+    {
+        if (SucursalSeleccionadaId <= 0)
+        {
+            ListaInventarios = new();
+            return;
+        }
+
+        CargandoInventario = true;
+
+        try
+        {
+            var inventarios =
+                await InventarioService
+                    .ObtenerPorSucursalAsync(
+                        SucursalSeleccionadaId);
+
+            ListaInventarios =
+                inventarios.ToList();
+        }
+        catch (Exception ex)
+        {
+            MostrarMensaje(
+                false,
+                $"No fue posible cargar las existencias: {ex.Message}");
+        }
+        finally
+        {
+            CargandoInventario = false;
+        }
+    }
+
+    private void PrepararEntrada()
+    {
+        EditandoConfiguracion = false;
+        InventarioEditandoId = 0;
+
+        ProductoEntradaId = 0;
+        TextoProductoEntrada = string.Empty;
+
+        CantidadEntrada = 1;
+        StockMinimoEntrada = 0;
+        StockMaximoEntrada = 0;
+
+        MostrarFormularioEntrada = true;
+
+        LimpiarMensaje();
+    }
+
+    private void PrepararEntradaProducto(
+        InventarioSucursal inventario)
+    {
+        EditandoConfiguracion = false;
+        InventarioEditandoId = 0;
+
+        ProductoEntradaId =
+            inventario.ProductoId;
+
+        TextoProductoEntrada =
+            inventario.Producto.Nombre;
+
+        CantidadEntrada = 1;
+
+        StockMinimoEntrada =
+            inventario.StockMinimo;
+
+        StockMaximoEntrada =
+            inventario.StockMaximo;
+
+        MostrarFormularioEntrada = true;
+
+        LimpiarMensaje();
+    }
+
+    private void PrepararConfiguracion(
+        InventarioSucursal inventario)
+    {
+        EditandoConfiguracion = true;
+
+        InventarioEditandoId =
+            inventario.Id;
+
+        ProductoEntradaId =
+            inventario.ProductoId;
+
+        TextoProductoEntrada =
+            inventario.Producto.Nombre;
+
+        CantidadEntrada = 0;
+
+        StockMinimoEntrada =
+            inventario.StockMinimo;
+
+        StockMaximoEntrada =
+            inventario.StockMaximo;
+
+        MostrarFormularioEntrada = true;
+
+        LimpiarMensaje();
+    }
+
+    private void CancelarEntrada()
+    {
+        MostrarFormularioEntrada = false;
+
+        EditandoConfiguracion = false;
+
+        InventarioEditandoId = 0;
+
+        ProductoEntradaId = 0;
+
+        TextoProductoEntrada = string.Empty;
+
+        CantidadEntrada = 0;
+
+        StockMinimoEntrada = 0;
+
+        StockMaximoEntrada = 0;
+    }
+
+    private async Task GuardarEntrada()
+    {
+        if (EditandoConfiguracion)
+        {
+            await GuardarConfiguracion();
+            return;
+        }
+
+        if (ProductoEntradaId <= 0)
+        {
+            MostrarMensaje(
+                false,
+                "Debe seleccionar un producto.");
+
+            return;
+        }
+
+        if (CantidadEntrada <= 0)
+        {
+            MostrarMensaje(
+                false,
+                "La cantidad debe ser mayor que cero.");
+
+            return;
+        }
+
+        GuardandoEntrada = true;
+
+        try
+        {
+            var resultado =
+                await InventarioService.RegistrarEntradaAsync(
+                    ProductoEntradaId,
+                    SucursalSeleccionadaId,
+                    CantidadEntrada,
+                    StockMinimoEntrada,
+                    StockMaximoEntrada);
+
+            MostrarMensaje(
+                resultado.Exitoso,
+                resultado.Mensaje);
+
+            if (resultado.Exitoso)
+            {
+                CancelarEntrada();
+
+                await CargarInventarioAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            MostrarMensaje(
+                false,
+                $"Ocurrió un error al registrar la entrada: {ex.Message}");
+        }
+        finally
+        {
+            GuardandoEntrada = false;
+        }
+    }
+
+    private async Task GuardarConfiguracion()
+    {
+        GuardandoEntrada = true;
+
+        try
+        {
+            var resultado =
+                await InventarioService
+                    .ActualizarConfiguracionAsync(
+                        InventarioEditandoId,
+                        StockMinimoEntrada,
+                        StockMaximoEntrada);
+
+            MostrarMensaje(
+                resultado.Exitoso,
+                resultado.Mensaje);
+
+            if (resultado.Exitoso)
+            {
+                CancelarEntrada();
+
+                await CargarInventarioAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            MostrarMensaje(
+                false,
+                $"Ocurrió un error al actualizar el inventario: {ex.Message}");
+        }
+        finally
+        {
+            GuardandoEntrada = false;
+        }
+    }
+
+    private void AlternarStockBajo()
+    {
+        MostrarSoloStockBajo =
+            !MostrarSoloStockBajo;
+    }
+
+    private void MostrarMensaje(
+        bool exitoso,
+        string mensaje)
+    {
+        MensajeExitoso = exitoso;
+        Mensaje = mensaje;
+    }
+
+    private void LimpiarMensaje()
+    {
+        Mensaje = string.Empty;
+        MensajeExitoso = false;
+    }
+}

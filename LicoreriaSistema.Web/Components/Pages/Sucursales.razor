@@ -1,0 +1,652 @@
+﻿@page "/sucursales"
+
+@attribute [Authorize]
+
+@rendermode InteractiveServer
+
+@using LicoreriaSistema.Dominio.Entidades
+@using LibreriaSistema.Aplicacion.Servicios
+
+@inject SucursalService SucursalService
+
+<PageTitle>Sucursales</PageTitle>
+
+<div class="sucursales-page">
+
+    <div class="page-header">
+
+        <div>
+            <h1>Sucursales</h1>
+
+            <p class="page-subtitle">
+                Administra las sucursales y sus ubicaciones.
+            </p>
+        </div>
+
+        <button type="button"
+                class="btn btn-primary"
+                @onclick="PrepararNuevaSucursal">
+            <span class="button-icon">+</span>
+            Nueva sucursal
+        </button>
+
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(Mensaje))
+    {
+        <div class="alert @(MensajeExitoso ? "alert-success" : "alert-danger") alert-dismissible-custom"
+             role="alert">
+
+            @Mensaje
+
+            <button type="button"
+                    class="alert-close"
+                    @onclick="LimpiarMensaje">
+                ×
+            </button>
+
+        </div>
+    }
+
+    <div class="toolbar-card">
+
+        <div class="search-box">
+            <span class="search-icon">⌕</span>
+
+            <input type="text"
+                   class="form-control"
+                   placeholder="Buscar por sucursal, dirección o teléfono..."
+                   @bind="TextoBusqueda"
+                   @bind:event="oninput" />
+        </div>
+
+        <div class="filter-group">
+
+            <button type="button"
+                    class="filter-button @(MostrarSoloActivas ? "active" : "")"
+                    @onclick="AlternarFiltroActivas">
+                @(MostrarSoloActivas ? "Solo activas" : "Todas")
+            </button>
+
+            <span class="result-count">
+                @SucursalesFiltradas.Count sucursal@(SucursalesFiltradas.Count == 1 ? "" : "es")
+            </span>
+
+        </div>
+
+    </div>
+
+    @if (Cargando)
+    {
+        <div class="loading-card">
+
+            <div class="spinner-border"
+                 role="status">
+            </div>
+
+            <span>Cargando sucursales...</span>
+
+        </div>
+    }
+    else if (MostrarFormulario)
+    {
+        <div class="form-card">
+
+            <div class="form-card-header">
+
+                <div>
+                    <h2>
+                        @(Editando
+                            ? "Editar sucursal"
+                            : "Nueva sucursal")
+                    </h2>
+
+                    <p>
+                        @(Editando
+                            ? "Actualiza la información de la sucursal."
+                            : "Registra una nueva ubicación para la licorería.")
+                    </p>
+                </div>
+
+                <button type="button"
+                        class="btn-close-custom"
+                        @onclick="CancelarFormulario">
+                    ×
+                </button>
+
+            </div>
+
+            <div class="form-grid">
+
+                <div class="form-field">
+
+                    <label for="nombreSucursal">
+                        Nombre <span class="required">*</span>
+                    </label>
+
+                    <input id="nombreSucursal"
+                           type="text"
+                           maxlength="150"
+                           class="form-control"
+                           placeholder="Ej. Licorería Sistema Higüey"
+                           @bind="NombreFormulario"
+                           @bind:event="oninput" />
+
+                </div>
+
+                <div class="form-field">
+
+                    <label for="telefonoSucursal">
+                        Teléfono
+                    </label>
+
+                    <input id="telefonoSucursal"
+                           type="tel"
+                           maxlength="30"
+                           class="form-control"
+                           placeholder="Ej. 809-000-0000"
+                           @bind="TelefonoFormulario"
+                           @bind:event="oninput" />
+
+                </div>
+
+                <div class="form-field field-wide">
+
+                    <label for="direccionSucursal">
+                        Dirección <span class="required">*</span>
+                    </label>
+
+                    <textarea id="direccionSucursal"
+                              maxlength="250"
+                              rows="3"
+                              class="form-control"
+                              placeholder="Ej. Avenida Libertad, Higüey, La Altagracia"
+                              @bind="DireccionFormulario"
+                              @bind:event="oninput"></textarea>
+
+                </div>
+
+                @if (Editando)
+                {
+                    <div class="form-field form-field-checkbox">
+
+                        <label class="checkbox-label">
+
+                            <input type="checkbox"
+                                   @bind="ActivaFormulario" />
+
+                            <span>Sucursal activa</span>
+
+                        </label>
+
+                    </div>
+                }
+
+            </div>
+
+            <div class="form-actions">
+
+                <button type="button"
+                        class="btn btn-secondary"
+                        @onclick="CancelarFormulario"
+                        disabled="@Guardando">
+                    Cancelar
+                </button>
+
+                <button type="button"
+                        class="btn btn-primary"
+                        @onclick="GuardarSucursal"
+                        disabled="@Guardando">
+
+                    @if (Guardando)
+                    {
+                        <span class="spinner-border spinner-border-sm me-2"
+                              role="status">
+                        </span>
+                    }
+
+                    @(Editando
+                        ? "Guardar cambios"
+                        : "Crear sucursal")
+
+                </button>
+
+            </div>
+
+        </div>
+    }
+
+    @if (!Cargando && SucursalesFiltradas.Count == 0)
+    {
+        <div class="empty-state">
+
+            <div class="empty-icon">▣</div>
+
+            <h3>No hay sucursales</h3>
+
+            <p>
+                @(string.IsNullOrWhiteSpace(TextoBusqueda)
+                    ? "Todavía no se han registrado sucursales."
+                    : "No encontramos sucursales que coincidan con la búsqueda.")
+            </p>
+
+            @if (string.IsNullOrWhiteSpace(TextoBusqueda))
+            {
+                <button type="button"
+                        class="btn btn-primary"
+                        @onclick="PrepararNuevaSucursal">
+                    Crear primera sucursal
+                </button>
+            }
+
+        </div>
+    }
+    else if (!Cargando)
+    {
+        <div class="branches-grid">
+
+            @foreach (var sucursal in SucursalesFiltradas)
+            {
+                <article class="branch-card">
+
+                    <div class="branch-card-header">
+
+                        <div class="branch-title-area">
+                            <h2>
+                                @sucursal.Nombre
+                            </h2>
+
+                            @if (sucursal.Activa)
+                            {
+                                <span class="status-badge active">
+                                    Activa
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="status-badge inactive">
+                                    Inactiva
+                                </span>
+                            }
+                        </div>
+
+                        <div class="branch-actions">
+
+                            <button type="button"
+                                    class="btn-action edit"
+                                    @onclick="() => PrepararEdicion(sucursal)">
+                                Editar
+                            </button>
+
+                            @if (sucursal.Activa)
+                            {
+                                <button type="button"
+                                        class="btn-action disable"
+                                        @onclick="() => CambiarEstado(sucursal, false)">
+                                    Desactivar
+                                </button>
+                            }
+                            else
+                            {
+                                <button type="button"
+                                        class="btn-action enable"
+                                        @onclick="() => CambiarEstado(sucursal, true)">
+                                    Activar
+                                </button>
+                            }
+
+                        </div>
+
+                    </div>
+
+                    <div class="branch-info">
+
+                        <div class="info-row">
+
+                            <span class="info-icon">⌖</span>
+
+                            <div class="info-content">
+                                <span class="info-label">
+                                    Dirección
+                                </span>
+
+                                <span class="info-value">
+                                    @sucursal.Direccion
+                                </span>
+                            </div>
+
+                        </div>
+
+                        @if (!string.IsNullOrWhiteSpace(sucursal.Telefono))
+                        {
+                            <div class="info-row">
+
+                                <span class="info-icon">☎</span>
+
+                                <div class="info-content">
+                                    <span class="info-label">
+                                        Teléfono
+                                    </span>
+
+                                    <span class="info-value">
+                                        @sucursal.Telefono
+                                    </span>
+                                </div>
+
+                            </div>
+                        }
+
+                    </div>
+
+                    <div class="map-wrapper">
+
+                        <iframe
+                            class="branch-map"
+                            src="@ConstruirMapaUrl(sucursal)"
+                            title="Mapa de @sucursal.Nombre"
+                            loading="lazy"
+                            referrerpolicy="no-referrer-when-downgrade">
+                        </iframe>
+
+                    </div>
+
+                    <div class="branch-footer">
+
+                        <a class="maps-link"
+                           href="@ConstruirGoogleMapsUrl(sucursal)"
+                           target="_blank"
+                           rel="noopener noreferrer">
+                            <span>📍</span>
+                            Abrir en Google Maps
+                        </a>
+
+                    </div>
+
+                </article>
+            }
+
+        </div>
+    }
+
+</div>
+
+@code {
+
+    private List<Sucursal> ListaSucursales { get; set; } = new();
+
+    private string TextoBusqueda { get; set; } = string.Empty;
+
+    private bool MostrarSoloActivas { get; set; }
+
+    private bool MostrarFormulario { get; set; }
+
+    private bool Editando { get; set; }
+
+    private bool Cargando { get; set; }
+
+    private bool Guardando { get; set; }
+
+    private int SucursalEditandoId { get; set; }
+
+    private string NombreFormulario { get; set; } = string.Empty;
+
+    private string DireccionFormulario { get; set; } = string.Empty;
+
+    private string TelefonoFormulario { get; set; } = string.Empty;
+
+    private bool ActivaFormulario { get; set; } = true;
+
+    private string Mensaje { get; set; } = string.Empty;
+
+    private bool MensajeExitoso { get; set; }
+
+    private List<Sucursal> SucursalesFiltradas
+    {
+        get
+        {
+            IEnumerable<Sucursal> consulta =
+                ListaSucursales;
+
+            if (MostrarSoloActivas)
+            {
+                consulta = consulta.Where(
+                    s => s.Activa);
+            }
+
+            if (!string.IsNullOrWhiteSpace(TextoBusqueda))
+            {
+                var busqueda =
+                    TextoBusqueda.Trim();
+
+                consulta = consulta.Where(s =>
+                    s.Nombre.Contains(
+                        busqueda,
+                        StringComparison.OrdinalIgnoreCase)
+                    ||
+                    s.Direccion.Contains(
+                        busqueda,
+                        StringComparison.OrdinalIgnoreCase)
+                    ||
+                    s.Telefono.Contains(
+                        busqueda,
+                        StringComparison.OrdinalIgnoreCase));
+            }
+
+            return consulta
+                .OrderBy(s => s.Nombre)
+                .ToList();
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarSucursalesAsync();
+    }
+
+    private async Task CargarSucursalesAsync()
+    {
+        Cargando = true;
+
+        try
+        {
+            var sucursales =
+                await SucursalService.ObtenerTodasAsync(
+                    incluirInactivas: true);
+
+            ListaSucursales =
+                sucursales.ToList();
+        }
+        catch (Exception ex)
+        {
+            MostrarMensaje(
+                false,
+                $"No fue posible cargar las sucursales: {ex.Message}");
+        }
+        finally
+        {
+            Cargando = false;
+        }
+    }
+
+    private void PrepararNuevaSucursal()
+    {
+        Editando = false;
+        SucursalEditandoId = 0;
+
+        NombreFormulario = string.Empty;
+        DireccionFormulario = string.Empty;
+        TelefonoFormulario = string.Empty;
+
+        ActivaFormulario = true;
+
+        MostrarFormulario = true;
+
+        LimpiarMensaje();
+    }
+
+    private void PrepararEdicion(
+        Sucursal sucursal)
+    {
+        Editando = true;
+
+        SucursalEditandoId =
+            sucursal.Id;
+
+        NombreFormulario =
+            sucursal.Nombre;
+
+        DireccionFormulario =
+            sucursal.Direccion;
+
+        TelefonoFormulario =
+            sucursal.Telefono;
+
+        ActivaFormulario =
+            sucursal.Activa;
+
+        MostrarFormulario = true;
+
+        LimpiarMensaje();
+    }
+
+    private void CancelarFormulario()
+    {
+        MostrarFormulario = false;
+
+        Editando = false;
+
+        SucursalEditandoId = 0;
+
+        NombreFormulario =
+            string.Empty;
+
+        DireccionFormulario =
+            string.Empty;
+
+        TelefonoFormulario =
+            string.Empty;
+
+        ActivaFormulario = true;
+    }
+
+    private async Task GuardarSucursal()
+    {
+        if (string.IsNullOrWhiteSpace(
+                NombreFormulario))
+        {
+            MostrarMensaje(
+                false,
+                "El nombre de la sucursal es obligatorio.");
+
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(
+                DireccionFormulario))
+        {
+            MostrarMensaje(
+                false,
+                "La dirección de la sucursal es obligatoria.");
+
+            return;
+        }
+
+        Guardando = true;
+
+        try
+        {
+            var resultado = Editando
+                ? await SucursalService.ActualizarAsync(
+                    SucursalEditandoId,
+                    NombreFormulario,
+                    DireccionFormulario,
+                    TelefonoFormulario,
+                    ActivaFormulario)
+
+                : await SucursalService.CrearAsync(
+                    NombreFormulario,
+                    DireccionFormulario,
+                    TelefonoFormulario);
+
+            MostrarMensaje(
+                resultado.Exitoso,
+                resultado.Mensaje);
+
+            if (resultado.Exitoso)
+            {
+                CancelarFormulario();
+
+                await CargarSucursalesAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            MostrarMensaje(
+                false,
+                $"Ocurrió un error al guardar la sucursal: {ex.Message}");
+        }
+        finally
+        {
+            Guardando = false;
+        }
+    }
+
+    private async Task CambiarEstado(
+        Sucursal sucursal,
+        bool nuevoEstado)
+    {
+        var resultado =
+            await SucursalService.CambiarEstadoAsync(
+                sucursal.Id,
+                nuevoEstado);
+
+        MostrarMensaje(
+            resultado.Exitoso,
+            resultado.Mensaje);
+
+        if (resultado.Exitoso)
+        {
+            await CargarSucursalesAsync();
+        }
+    }
+
+    private void AlternarFiltroActivas()
+    {
+        MostrarSoloActivas =
+            !MostrarSoloActivas;
+    }
+
+    private void MostrarMensaje(
+        bool exitoso,
+        string mensaje)
+    {
+        MensajeExitoso = exitoso;
+        Mensaje = mensaje;
+    }
+
+    private void LimpiarMensaje()
+    {
+        Mensaje = string.Empty;
+        MensajeExitoso = false;
+    }
+
+    private static string ConstruirGoogleMapsUrl(
+        Sucursal sucursal)
+    {
+        var consulta =
+            $"{sucursal.Nombre}, {sucursal.Direccion}";
+
+        return
+            $"https://www.google.com/maps/search/?api=1&query={Uri.EscapeDataString(consulta)}";
+    }
+
+    private static string ConstruirMapaUrl(
+        Sucursal sucursal)
+    {
+        var consulta =
+            $"{sucursal.Nombre}, {sucursal.Direccion}";
+
+        return
+            $"https://www.google.com/maps?q={Uri.EscapeDataString(consulta)}&output=embed";
+    }
+}
