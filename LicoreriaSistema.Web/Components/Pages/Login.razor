@@ -1,0 +1,51 @@
+﻿@page "/login"
+
+<PageTitle>Iniciar sesión</PageTitle>
+
+<div class="login-container">
+    <div class="login-card">
+        <div class="login-header">
+            <h1>Licorería Sistema</h1>
+            <p>Iniciar sesión</p>
+        </div>
+
+        <form method="post" action="/api/auth/login">
+
+            <div class="mb-3">
+                <label for="nombreUsuario" class="form-label">
+                    Usuario
+                </label>
+
+                <input id="nombreUsuario"
+                       name="NombreUsuario"
+                       type="text"
+                       class="form-control"
+                       autocomplete="username"
+                       required />
+            </div>
+
+            <div class="mb-3">
+                <label for="password" class="form-label">
+                    Contraseña
+                </label>
+
+                <input id="password"
+                       name="Password"
+                       type="password"
+                       class="form-control"
+                       autocomplete="current-password"
+                       required />
+            </div>
+
+            <input type="hidden"
+                   name="ReturnUrl"
+                   value="/" />
+
+            <button type="submit"
+                    class="btn btn-primary w-100">
+                Ingresar
+            </button>
+
+        </form>
+    </div>
+</div>

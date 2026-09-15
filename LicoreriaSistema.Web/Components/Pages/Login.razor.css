@@ -1,0 +1,91 @@
+.login-container {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    background: #111111;
+}
+
+.login-card {
+    width: 100%;
+    max-width: 430px;
+    padding: 2.5rem;
+    border-radius: 16px;
+    background: #ffffff;
+    border-top: 6px solid #f5c400;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.35);
+}
+
+.login-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.login-header h1 {
+    margin: 0;
+    color: #111111;
+    font-size: 2rem;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+}
+
+.login-header p {
+    margin-top: 0.5rem;
+    margin-bottom: 0;
+    color: #666666;
+    font-size: 0.95rem;
+}
+
+.login-card .form-label {
+    color: #111111;
+    font-weight: 600;
+}
+
+.login-card .form-control {
+    min-height: 48px;
+    border: 1px solid #cccccc;
+    border-radius: 8px;
+    color: #111111;
+    background: #ffffff;
+}
+
+.login-card .form-control:focus {
+    border-color: #f5c400;
+    box-shadow: 0 0 0 0.2rem rgba(245, 196, 0, 0.25);
+}
+
+.login-card .btn-primary {
+    min-height: 48px;
+    border: none;
+    border-radius: 8px;
+    background: #f5c400;
+    color: #111111;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: all 0.2s ease;
+}
+
+.login-card .btn-primary:hover {
+    background: #d9ad00;
+    color: #111111;
+    transform: translateY(-1px);
+}
+
+.login-card .btn-primary:disabled {
+    background: #d6d6d6;
+    color: #666666;
+    transform: none;
+}
+
+.login-card .alert-danger {
+    border-radius: 8px;
+    margin-bottom: 1rem;
+}
+
+.validation-message {
+    color: #b00020;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+}

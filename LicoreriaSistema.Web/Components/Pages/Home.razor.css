@@ -1,0 +1,682 @@
+/* =========================================================
+   DASHBOARD
+   ========================================================= */
+
+.dashboard {
+    width: 100%;
+    max-width: 1500px;
+    margin: 0 auto;
+}
+
+
+/* =========================================================
+   ENCABEZADO
+   ========================================================= */
+
+.dashboard-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+
+    gap: 2rem;
+
+    margin-bottom: 1.75rem;
+}
+
+.dashboard-eyebrow {
+    display: block;
+
+    margin-bottom: 0.45rem;
+
+    color: #b08d00;
+
+    font-size: 0.68rem;
+    font-weight: 800;
+
+    letter-spacing: 1.5px;
+}
+
+.dashboard-header h1 {
+    margin: 0;
+
+    color: #111111;
+
+    font-size: clamp(1.7rem, 3vw, 2.3rem);
+    font-weight: 800;
+
+    letter-spacing: -0.8px;
+}
+
+.dashboard-header p {
+    margin: 0.5rem 0 0;
+
+    max-width: 650px;
+
+    color: #707070;
+
+    font-size: 0.92rem;
+}
+
+.dashboard-date {
+    flex-shrink: 0;
+
+    text-align: right;
+}
+
+.date-label {
+    display: block;
+
+    margin-bottom: 0.45rem;
+
+    color: #888888;
+
+    font-size: 0.62rem;
+    font-weight: 800;
+
+    letter-spacing: 1.1px;
+}
+
+.system-online {
+    display: inline-flex;
+    align-items: center;
+
+    gap: 0.5rem;
+
+    padding: 0.45rem 0.75rem;
+
+    border-radius: 20px;
+
+    background: #ffffff;
+
+    color: #444444;
+
+    font-size: 0.76rem;
+    font-weight: 600;
+
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.online-dot {
+    width: 7px;
+    height: 7px;
+
+    border-radius: 50%;
+
+    background: #f5c400;
+
+    box-shadow: 0 0 0 3px rgba(245, 196, 0, 0.12);
+}
+
+
+/* =========================================================
+   MÉTRICAS
+   ========================================================= */
+
+.metrics-grid {
+    display: grid;
+
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+
+    gap: 1rem;
+
+    margin-bottom: 1rem;
+}
+
+.metric-card {
+    min-height: 145px;
+
+    display: flex;
+    align-items: center;
+
+    gap: 1rem;
+
+    padding: 1.25rem;
+
+    box-sizing: border-box;
+
+    background: #ffffff;
+
+    border: 1px solid #e7e7e7;
+
+    border-radius: 12px;
+
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.035);
+
+    transition:
+        transform 0.18s ease,
+        box-shadow 0.18s ease;
+}
+
+.metric-card:hover {
+    transform: translateY(-2px);
+
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.07);
+}
+
+.metric-icon {
+    width: 46px;
+    height: 46px;
+
+    flex: 0 0 46px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 10px;
+
+    background: #fff8d6;
+
+    color: #b08d00;
+}
+
+.metric-icon svg {
+    width: 23px;
+    height: 23px;
+
+    fill: none;
+
+    stroke: currentColor;
+
+    stroke-width: 1.8;
+
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.metric-content {
+    min-width: 0;
+
+    display: flex;
+    flex-direction: column;
+}
+
+.metric-label {
+    color: #777777;
+
+    font-size: 0.63rem;
+    font-weight: 800;
+
+    letter-spacing: 1px;
+}
+
+.metric-value {
+    margin-top: 0.15rem;
+
+    color: #111111;
+
+    font-size: 1.65rem;
+    font-weight: 800;
+
+    line-height: 1.1;
+}
+
+.metric-description {
+    margin-top: 0.25rem;
+
+    color: #999999;
+
+    font-size: 0.7rem;
+}
+
+
+/* =========================================================
+   GRID PRINCIPAL
+   ========================================================= */
+
+.dashboard-grid {
+    display: grid;
+
+    grid-template-columns: 1.15fr 0.85fr;
+
+    gap: 1rem;
+}
+
+
+/* =========================================================
+   TARJETAS
+   ========================================================= */
+
+.dashboard-card {
+    min-width: 0;
+
+    background: #ffffff;
+
+    border: 1px solid #e7e7e7;
+
+    border-radius: 12px;
+
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.035);
+
+    overflow: hidden;
+}
+
+.card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 1rem;
+
+    padding: 1.35rem 1.4rem;
+
+    border-bottom: 1px solid #eeeeee;
+}
+
+.card-eyebrow {
+    display: block;
+
+    margin-bottom: 0.3rem;
+
+    color: #b08d00;
+
+    font-size: 0.62rem;
+    font-weight: 800;
+
+    letter-spacing: 1px;
+}
+
+.card-header h2 {
+    margin: 0;
+
+    color: #222222;
+
+    font-size: 1.05rem;
+    font-weight: 750;
+}
+
+.card-icon {
+    width: 38px;
+    height: 38px;
+
+    flex: 0 0 38px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 9px;
+
+    background: #f5f5f5;
+
+    color: #555555;
+}
+
+.card-icon svg {
+    width: 20px;
+    height: 20px;
+
+    fill: none;
+
+    stroke: currentColor;
+
+    stroke-width: 1.8;
+
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+
+/* =========================================================
+   RESUMEN INVENTARIO
+   ========================================================= */
+
+.summary-list {
+    padding: 0.35rem 1.4rem;
+}
+
+.summary-row {
+    min-height: 54px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 1rem;
+
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.summary-row:last-child {
+    border-bottom: none;
+}
+
+.summary-label {
+    display: flex;
+    align-items: center;
+
+    gap: 0.65rem;
+
+    color: #555555;
+
+    font-size: 0.82rem;
+}
+
+.summary-indicator {
+    width: 8px;
+    height: 8px;
+
+    flex: 0 0 8px;
+
+    border-radius: 50%;
+}
+
+.summary-indicator.normal {
+    background: #777777;
+}
+
+.summary-indicator.warning {
+    background: #f5c400;
+}
+
+.summary-indicator.danger {
+    background: #555555;
+}
+
+.summary-value {
+    color: #222222;
+
+    font-size: 0.9rem;
+    font-weight: 700;
+}
+
+.card-footer {
+    padding: 0.9rem 1.4rem;
+
+    border-top: 1px solid #eeeeee;
+}
+
+.card-link {
+    display: inline-flex;
+    align-items: center;
+
+    gap: 0.5rem;
+
+    color: #8f7300 !important;
+
+    font-size: 0.76rem;
+    font-weight: 700;
+
+    text-decoration: none !important;
+}
+
+.card-link:hover {
+    color: #111111 !important;
+
+    text-decoration: none !important;
+}
+
+.card-link span {
+    font-size: 1rem;
+
+    transition: transform 0.18s ease;
+}
+
+.card-link:hover span {
+    transform: translateX(3px);
+}
+
+
+/* =========================================================
+   ACCIONES RÁPIDAS
+   ========================================================= */
+
+.actions-list {
+    padding: 0.55rem 0.75rem;
+}
+
+.quick-action {
+    min-height: 59px;
+
+    display: flex;
+    align-items: center;
+
+    gap: 0.75rem;
+
+    padding: 0.5rem 0.65rem;
+
+    border-radius: 8px;
+
+    color: #333333 !important;
+
+    text-decoration: none !important;
+
+    transition:
+        background-color 0.18s ease,
+        transform 0.18s ease;
+}
+
+.quick-action:hover {
+    background: #f6f6f6;
+
+    color: #111111 !important;
+
+    text-decoration: none !important;
+
+    transform: translateX(2px);
+}
+
+.action-icon {
+    width: 36px;
+    height: 36px;
+
+    flex: 0 0 36px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 8px;
+
+    background: #f7f7f7;
+
+    color: #777777;
+}
+
+.quick-action:hover .action-icon {
+    background: #fff8d6;
+
+    color: #b08d00;
+}
+
+.action-icon svg {
+    width: 18px;
+    height: 18px;
+
+    fill: none;
+
+    stroke: currentColor;
+
+    stroke-width: 1.8;
+
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.action-text {
+    flex: 1;
+
+    min-width: 0;
+
+    display: flex;
+    flex-direction: column;
+}
+
+.action-text strong {
+    color: #333333;
+
+    font-size: 0.82rem;
+    font-weight: 700;
+}
+
+.action-text small {
+    margin-top: 0.15rem;
+
+    color: #999999;
+
+    font-size: 0.68rem;
+}
+
+.action-arrow {
+    color: #999999;
+
+    font-size: 1rem;
+
+    transition: transform 0.18s ease;
+}
+
+.quick-action:hover .action-arrow {
+    color: #b08d00;
+
+    transform: translateX(3px);
+}
+
+
+/* =========================================================
+   PANEL INFORMATIVO
+   ========================================================= */
+
+.welcome-panel {
+    min-height: 115px;
+
+    display: flex;
+    align-items: center;
+
+    gap: 1.1rem;
+
+    margin-top: 1rem;
+
+    padding: 1.25rem 1.4rem;
+
+    box-sizing: border-box;
+
+    background: #111111;
+
+    border-radius: 12px;
+
+    box-shadow: 0 5px 16px rgba(0, 0, 0, 0.08);
+}
+
+.welcome-icon {
+    width: 50px;
+    height: 50px;
+
+    flex: 0 0 50px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 11px;
+
+    background: #f5c400;
+
+    color: #111111;
+
+    font-size: 0.85rem;
+    font-weight: 900;
+}
+
+.welcome-content {
+    min-width: 0;
+}
+
+.welcome-label {
+    display: block;
+
+    margin-bottom: 0.2rem;
+
+    color: #f5c400;
+
+    font-size: 0.62rem;
+    font-weight: 800;
+
+    letter-spacing: 1.4px;
+}
+
+.welcome-content h2 {
+    margin: 0;
+
+    color: #ffffff;
+
+    font-size: 1.15rem;
+    font-weight: 750;
+}
+
+.welcome-content p {
+    margin: 0.25rem 0 0;
+
+    color: #999999;
+
+    font-size: 0.76rem;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 1100px) {
+
+    .metrics-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+
+@media (max-width: 700px) {
+
+    .dashboard-header {
+        align-items: flex-start;
+
+        flex-direction: column;
+
+        gap: 1rem;
+    }
+
+    .dashboard-date {
+        text-align: left;
+    }
+
+    .metrics-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .metric-card {
+        min-height: 125px;
+    }
+}
+
+
+@media (max-width: 480px) {
+
+    .dashboard-header h1 {
+        font-size: 1.55rem;
+    }
+
+    .dashboard-header p {
+        font-size: 0.84rem;
+    }
+
+    .metric-card {
+        padding: 1rem;
+    }
+
+    .card-header {
+        padding: 1.1rem;
+    }
+
+    .summary-list {
+        padding: 0.35rem 1.1rem;
+    }
+
+    .welcome-panel {
+        align-items: flex-start;
+
+        padding: 1.1rem;
+    }
+}

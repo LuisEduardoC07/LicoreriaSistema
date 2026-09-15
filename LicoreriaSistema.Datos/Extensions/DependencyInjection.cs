@@ -1,4 +1,7 @@
+using LibreriaSistema.Aplicacion.Interfaces;
+using LibreriaSistema.Aplicacion.Servicios;
 using LicoreriaSistema.Datos.Context;
+using LicoreriaSistema.Datos.Repositorios;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -17,6 +20,11 @@ public static class DependencyInjection
 
         services.AddDbContext<LicoreriaDbContext>(options =>
             options.UseSqlServer(connectionString));
+
+        services.AddScoped<IUsuarioRepository, UsuarioRepository>();
+        services.AddScoped<ICategoriaRepository, CategoriaRepository>();
+        services.AddScoped<CategoriaService>();
+        services.AddScoped<IAutenticacionService, AutenticacionService>();
 
         return services;
     }

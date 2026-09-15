@@ -1,7 +1,402 @@
 ﻿@page "/"
+@attribute [Authorize]
 
-<PageTitle>Home</PageTitle>
+<PageTitle>Inicio | Licorería Sistema</PageTitle>
 
-<h1>Hello, world!</h1>
+<div class="dashboard">
 
-Welcome to your new app.
+    <!-- ENCABEZADO -->
+
+    <section class="dashboard-header">
+
+        <div>
+            <span class="dashboard-eyebrow">
+                PANEL PRINCIPAL
+            </span>
+
+            <h1>
+                Bienvenido a Licorería Sistema
+            </h1>
+
+            <p>
+                Administra productos, inventario, sucursales y seguridad
+                desde un solo lugar.
+            </p>
+        </div>
+
+        <div class="dashboard-date">
+            <span class="date-label">ESTADO DEL SISTEMA</span>
+
+            <div class="system-online">
+                <span class="online-dot"></span>
+                Sistema operativo
+            </div>
+        </div>
+
+    </section>
+
+
+    <!-- MÉTRICAS -->
+
+    <section class="metrics-grid">
+
+        <div class="metric-card">
+
+            <div class="metric-icon">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M4 7h16" />
+                    <path d="M4 12h16" />
+                    <path d="M4 17h10" />
+                    <path d="M17 15h4" />
+                    <path d="M19 13v4" />
+                </svg>
+            </div>
+
+            <div class="metric-content">
+                <span class="metric-label">
+                    PRODUCTOS
+                </span>
+
+                <strong class="metric-value">
+                    —
+                </strong>
+
+                <span class="metric-description">
+                    Productos registrados
+                </span>
+            </div>
+
+        </div>
+
+
+        <div class="metric-card">
+
+            <div class="metric-icon">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M4 5h16v14H4z" />
+                    <path d="M8 9h8" />
+                    <path d="M8 13h8" />
+                    <path d="M8 17h5" />
+                </svg>
+            </div>
+
+            <div class="metric-content">
+                <span class="metric-label">
+                    INVENTARIO
+                </span>
+
+                <strong class="metric-value">
+                    —
+                </strong>
+
+                <span class="metric-description">
+                    Existencias registradas
+                </span>
+            </div>
+
+        </div>
+
+
+        <div class="metric-card">
+
+            <div class="metric-icon">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M12 21s7-6.2 7-12a7 7 0 1 0-14 0c0 5.8 7 12 7 12z" />
+                    <circle cx="12" cy="9" r="2.5" />
+                </svg>
+            </div>
+
+            <div class="metric-content">
+                <span class="metric-label">
+                    SUCURSALES
+                </span>
+
+                <strong class="metric-value">
+                    —
+                </strong>
+
+                <span class="metric-description">
+                    Sucursales activas
+                </span>
+            </div>
+
+        </div>
+
+
+        <div class="metric-card">
+
+            <div class="metric-icon">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <circle cx="12" cy="8" r="3" />
+                    <path d="M5 20c.8-3.5 3.1-5 7-5s6.2 1.5 7 5" />
+                </svg>
+            </div>
+
+            <div class="metric-content">
+                <span class="metric-label">
+                    USUARIOS
+                </span>
+
+                <strong class="metric-value">
+                    —
+                </strong>
+
+                <span class="metric-description">
+                    Usuarios del sistema
+                </span>
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- CONTENIDO PRINCIPAL -->
+
+    <section class="dashboard-grid">
+
+        <!-- RESUMEN -->
+
+        <div class="dashboard-card inventory-summary">
+
+            <div class="card-header">
+
+                <div>
+                    <span class="card-eyebrow">
+                        INVENTARIO
+                    </span>
+
+                    <h2>
+                        Resumen del inventario
+                    </h2>
+                </div>
+
+                <div class="card-icon">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M4 5h16v14H4z" />
+                        <path d="M8 9h8" />
+                        <path d="M8 13h8" />
+                        <path d="M8 17h5" />
+                    </svg>
+                </div>
+
+            </div>
+
+
+            <div class="summary-list">
+
+                <div class="summary-row">
+
+                    <div class="summary-label">
+                        <span class="summary-indicator normal"></span>
+
+                        <span>
+                            Existencias normales
+                        </span>
+                    </div>
+
+                    <span class="summary-value">
+                        —
+                    </span>
+
+                </div>
+
+
+                <div class="summary-row">
+
+                    <div class="summary-label">
+                        <span class="summary-indicator warning"></span>
+
+                        <span>
+                            Stock bajo
+                        </span>
+                    </div>
+
+                    <span class="summary-value">
+                        —
+                    </span>
+
+                </div>
+
+
+                <div class="summary-row">
+
+                    <div class="summary-label">
+                        <span class="summary-indicator danger"></span>
+
+                        <span>
+                            Productos agotados
+                        </span>
+                    </div>
+
+                    <span class="summary-value">
+                        —
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <div class="card-footer">
+
+                <a href="inventario" class="card-link">
+                    Ver inventario
+
+                    <span>→</span>
+                </a>
+
+            </div>
+
+        </div>
+
+
+        <!-- ACCIONES RÁPIDAS -->
+
+        <div class="dashboard-card quick-actions">
+
+            <div class="card-header">
+
+                <div>
+                    <span class="card-eyebrow">
+                        ACCIONES
+                    </span>
+
+                    <h2>
+                        Acciones rápidas
+                    </h2>
+                </div>
+
+                <div class="card-icon">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M12 5v14" />
+                        <path d="M5 12h14" />
+                    </svg>
+                </div>
+
+            </div>
+
+
+            <div class="actions-list">
+
+                <a href="productos" class="quick-action">
+
+                    <span class="action-icon">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M4 7h16" />
+                            <path d="M4 12h16" />
+                            <path d="M4 17h10" />
+                            <path d="M17 15h4" />
+                            <path d="M19 13v4" />
+                        </svg>
+                    </span>
+
+                    <span class="action-text">
+                        <strong>Productos</strong>
+                        <small>Administrar productos</small>
+                    </span>
+
+                    <span class="action-arrow">
+                        →
+                    </span>
+
+                </a>
+
+
+                <a href="sucursales" class="quick-action">
+
+                    <span class="action-icon">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M12 21s7-6.2 7-12a7 7 0 1 0-14 0c0 5.8 7 12 7 12z" />
+                            <circle cx="12" cy="9" r="2.5" />
+                        </svg>
+                    </span>
+
+                    <span class="action-text">
+                        <strong>Sucursales</strong>
+                        <small>Administrar sucursales</small>
+                    </span>
+
+                    <span class="action-arrow">
+                        →
+                    </span>
+
+                </a>
+
+
+                <a href="usuarios" class="quick-action">
+
+                    <span class="action-icon">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <circle cx="12" cy="8" r="3" />
+                            <path d="M5 20c.8-3.5 3.1-5 7-5s6.2 1.5 7 5" />
+                        </svg>
+                    </span>
+
+                    <span class="action-text">
+                        <strong>Usuarios</strong>
+                        <small>Administrar usuarios</small>
+                    </span>
+
+                    <span class="action-arrow">
+                        →
+                    </span>
+
+                </a>
+
+
+                <a href="roles" class="quick-action">
+
+                    <span class="action-icon">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M12 3l7 3v5c0 4.5-2.8 7.5-7 10-4.2-2.5-7-5.5-7-10V6l7-3z" />
+                            <path d="M9 12l2 2 4-4" />
+                        </svg>
+                    </span>
+
+                    <span class="action-text">
+                        <strong>Seguridad</strong>
+                        <small>Roles y permisos</small>
+                    </span>
+
+                    <span class="action-arrow">
+                        →
+                    </span>
+
+                </a>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- INFORMACIÓN -->
+
+    <section class="welcome-panel">
+
+        <div class="welcome-icon">
+            LS
+        </div>
+
+        <div class="welcome-content">
+
+            <span class="welcome-label">
+                LICORERÍA SISTEMA
+            </span>
+
+            <h2>
+                Todo bajo control.
+            </h2>
+
+            <p>
+                Desde este panel podrás administrar las operaciones
+                principales de tu negocio de forma centralizada.
+            </p>
+
+        </div>
+
+    </section>
+
+</div>

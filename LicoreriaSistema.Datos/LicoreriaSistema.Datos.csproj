@@ -2,6 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\LicoreriaSistema.Dominio\LibreriaSistema.Dominio.csproj" />
+    <ProjectReference Include="..\LicoreriaSistema.Aplicacion\LibreriaSistema.Aplicacion.csproj" />
   </ItemGroup>
 
   <ItemGroup>
