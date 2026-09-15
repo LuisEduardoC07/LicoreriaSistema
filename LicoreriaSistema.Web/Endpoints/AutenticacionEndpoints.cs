@@ -7,6 +7,9 @@ namespace LicoreriaSistema.Web.Endpoints;
 
 public static class AutenticacionEndpoints
 {
+    private static readonly TimeSpan DuracionSesion =
+        TimeSpan.FromMinutes(5);
+
     public static IEndpointRouteBuilder MapAutenticacionEndpoints(
         this IEndpointRouteBuilder endpoints)
     {
@@ -25,6 +28,11 @@ public static class AutenticacionEndpoints
             var returnUrl =
                 form["ReturnUrl"].ToString();
 
+            if (!EsUrlLocal(returnUrl))
+            {
+                returnUrl = "/";
+            }
+
             var resultado =
                 await autenticacionService.AutenticarAsync(
                     nombreUsuario,
@@ -34,14 +42,24 @@ public static class AutenticacionEndpoints
             {
                 var destino = "/login";
 
-                if (!string.IsNullOrWhiteSpace(returnUrl))
+                var parametros = new List<string>();
+
+                if (!string.IsNullOrWhiteSpace(returnUrl) &&
+                    returnUrl != "/")
                 {
-                    destino +=
-                        $"?returnUrl={Uri.EscapeDataString(returnUrl)}";
+                    parametros.Add(
+                        $"returnUrl={Uri.EscapeDataString(returnUrl)}");
                 }
+
+                parametros.Add("error=credenciales");
+
+                destino += "?" + string.Join("&", parametros);
 
                 return Results.Redirect(destino);
             }
+
+            var fechaExpiracion =
+                DateTimeOffset.UtcNow.Add(DuracionSesion);
 
             var claims = new List<Claim>
             {
@@ -63,7 +81,11 @@ public static class AutenticacionEndpoints
 
                 new(
                     "AlcanceGlobal",
-                    resultado.AlcanceGlobal.ToString())
+                    resultado.AlcanceGlobal.ToString()),
+
+                new(
+                    "SesionExpiraUtc",
+                    fechaExpiracion.ToString("O"))
             };
 
             foreach (var permiso in resultado.Permisos)
@@ -86,21 +108,19 @@ public static class AutenticacionEndpoints
 
             var principal = new ClaimsPrincipal(identidad);
 
+            var propiedades = new AuthenticationProperties
+            {
+                IsPersistent = false,
+                AllowRefresh = false,
+                ExpiresUtc = fechaExpiracion
+            };
+
             await httpContext.SignInAsync(
                 CookieAuthenticationDefaults.AuthenticationScheme,
-                principal);
+                principal,
+                propiedades);
 
-            if (string.IsNullOrWhiteSpace(returnUrl) ||
-                !Uri.TryCreate(
-                    returnUrl,
-                    UriKind.Relative,
-                    out _) ||
-                !returnUrl.StartsWith("/"))
-            {
-                returnUrl = "/";
-            }
-
-            return Results.Redirect(returnUrl);
+            return Results.LocalRedirect(returnUrl);
         });
 
         endpoints.MapPost("/api/auth/logout", async (
@@ -113,5 +133,39 @@ public static class AutenticacionEndpoints
         });
 
         return endpoints;
+    }
+
+    private static bool EsUrlLocal(string? url)
+    {
+        if (string.IsNullOrWhiteSpace(url))
+        {
+            return false;
+        }
+
+        if (!url.StartsWith(
+                "/",
+                StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        if (url.StartsWith(
+                "//",
+                StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        if (url.StartsWith(
+                "/\\",
+                StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        return !Uri.TryCreate(
+            url,
+            UriKind.Absolute,
+            out _);
     }
 }
