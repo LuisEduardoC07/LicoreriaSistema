@@ -1,4 +1,4 @@
-using LibreriaSistema.Aplicacion.Interfaces;
+﻿using LibreriaSistema.Aplicacion.Interfaces;
 using LicoreriaSistema.Dominio.Entidades;
 
 namespace LibreriaSistema.Aplicacion.Servicios;
@@ -45,7 +45,24 @@ public class CategoriaService
 
         if (string.IsNullOrWhiteSpace(nombre))
         {
-            return (false, "El nombre de la categoría es obligatorio.");
+            return (
+                false,
+                "El nombre de la categoría es obligatorio.");
+        }
+
+        if (nombre.Length > 100)
+        {
+            return (
+                false,
+                "El nombre de la categoría no puede superar los 100 caracteres.");
+        }
+
+        if (descripcion is not null &&
+            descripcion.Length > 250)
+        {
+            return (
+                false,
+                "La descripción no puede superar los 250 caracteres.");
         }
 
         if (await _categoriaRepository.ExisteNombreAsync(
@@ -53,7 +70,9 @@ public class CategoriaService
                 null,
                 cancellationToken))
         {
-            return (false, "Ya existe una categoría con ese nombre.");
+            return (
+                false,
+                "Ya existe una categoría con ese nombre.");
         }
 
         var categoria = new Categoria
@@ -70,7 +89,9 @@ public class CategoriaService
         await _categoriaRepository.GuardarCambiosAsync(
             cancellationToken);
 
-        return (true, "La categoría fue creada correctamente.");
+        return (
+            true,
+            "La categoría fue creada correctamente.");
     }
 
     public async Task<(bool Exitoso, string Mensaje)> ActualizarAsync(
@@ -85,21 +106,43 @@ public class CategoriaService
 
         if (id <= 0)
         {
-            return (false, "La categoría indicada no es válida.");
+            return (
+                false,
+                "La categoría indicada no es válida.");
         }
 
         if (string.IsNullOrWhiteSpace(nombre))
         {
-            return (false, "El nombre de la categoría es obligatorio.");
+            return (
+                false,
+                "El nombre de la categoría es obligatorio.");
         }
 
-        var categoria = await _categoriaRepository.ObtenerPorIdAsync(
-            id,
-            cancellationToken);
+        if (nombre.Length > 100)
+        {
+            return (
+                false,
+                "El nombre de la categoría no puede superar los 100 caracteres.");
+        }
+
+        if (descripcion is not null &&
+            descripcion.Length > 250)
+        {
+            return (
+                false,
+                "La descripción no puede superar los 250 caracteres.");
+        }
+
+        var categoria =
+            await _categoriaRepository.ObtenerPorIdAsync(
+                id,
+                cancellationToken);
 
         if (categoria is null)
         {
-            return (false, "La categoría no existe.");
+            return (
+                false,
+                "La categoría no existe.");
         }
 
         if (await _categoriaRepository.ExisteNombreAsync(
@@ -107,7 +150,9 @@ public class CategoriaService
                 id,
                 cancellationToken))
         {
-            return (false, "Ya existe otra categoría con ese nombre.");
+            return (
+                false,
+                "Ya existe otra categoría con ese nombre.");
         }
 
         categoria.Nombre = nombre;
@@ -121,7 +166,9 @@ public class CategoriaService
         await _categoriaRepository.GuardarCambiosAsync(
             cancellationToken);
 
-        return (true, "La categoría fue actualizada correctamente.");
+        return (
+            true,
+            "La categoría fue actualizada correctamente.");
     }
 
     public async Task<(bool Exitoso, string Mensaje)> CambiarEstadoAsync(
@@ -131,16 +178,21 @@ public class CategoriaService
     {
         if (id <= 0)
         {
-            return (false, "La categoría indicada no es válida.");
+            return (
+                false,
+                "La categoría indicada no es válida.");
         }
 
-        var categoria = await _categoriaRepository.ObtenerPorIdAsync(
-            id,
-            cancellationToken);
+        var categoria =
+            await _categoriaRepository.ObtenerPorIdAsync(
+                id,
+                cancellationToken);
 
         if (categoria is null)
         {
-            return (false, "La categoría no existe.");
+            return (
+                false,
+                "La categoría no existe.");
         }
 
         categoria.Activa = activa;
@@ -165,16 +217,21 @@ public class CategoriaService
     {
         if (id <= 0)
         {
-            return (false, "La categoría indicada no es válida.");
+            return (
+                false,
+                "La categoría indicada no es válida.");
         }
 
-        var categoria = await _categoriaRepository.ObtenerPorIdAsync(
-            id,
-            cancellationToken);
+        var categoria =
+            await _categoriaRepository.ObtenerPorIdAsync(
+                id,
+                cancellationToken);
 
         if (categoria is null)
         {
-            return (false, "La categoría no existe.");
+            return (
+                false,
+                "La categoría no existe.");
         }
 
         if (await _categoriaRepository.TieneProductosAsync(
@@ -188,6 +245,6 @@ public class CategoriaService
 
         return (
             false,
-            "La eliminación física de categorías no está habilitada.");
+            "La eliminación física de categorías no está habilitada. Puedes desactivarla.");
     }
 }

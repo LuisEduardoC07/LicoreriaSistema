@@ -1,4 +1,4 @@
-using LibreriaSistema.Aplicacion.Interfaces;
+﻿using LibreriaSistema.Aplicacion.Interfaces;
 using LibreriaSistema.Aplicacion.Servicios;
 using LicoreriaSistema.Datos.Context;
 using LicoreriaSistema.Datos.Repositorios;
@@ -16,14 +16,16 @@ public static class DependencyInjection
     {
         var connectionString = configuration.GetConnectionString("LicoreriaDb")
             ?? throw new InvalidOperationException(
-                "No se encontró la cadena de conexión 'LicoreriaDb'.");
+                "No se encontrÃ³ la cadena de conexiÃ³n 'LicoreriaDb'.");
 
         services.AddDbContext<LicoreriaDbContext>(options =>
             options.UseSqlServer(connectionString));
 
         services.AddScoped<IUsuarioRepository, UsuarioRepository>();
+        services.AddScoped<IProductoRepository, ProductoRepository>();
         services.AddScoped<ICategoriaRepository, CategoriaRepository>();
         services.AddScoped<CategoriaService>();
+        services.AddScoped<ProductoService>();
         services.AddScoped<IAutenticacionService, AutenticacionService>();
 
         return services;

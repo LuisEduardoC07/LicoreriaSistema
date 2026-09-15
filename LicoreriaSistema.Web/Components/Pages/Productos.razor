@@ -1,0 +1,775 @@
+﻿@page "/productos"
+
+@attribute [Authorize]
+
+@rendermode InteractiveServer
+
+@using LicoreriaSistema.Dominio.Entidades
+@using LibreriaSistema.Aplicacion.Servicios
+
+@inject ProductoService ProductoService
+@inject CategoriaService CategoriaService
+
+<PageTitle>Productos</PageTitle>
+
+<div class="productos-page">
+
+    <div class="page-header">
+        <div>
+            <h1>Productos</h1>
+            <p class="page-subtitle">
+                Administra los productos y códigos de barras de la licorería.
+            </p>
+        </div>
+
+        <button type="button"
+                class="btn btn-primary"
+                @onclick="PrepararNuevoProducto">
+            <span class="button-icon">+</span>
+            Nuevo producto
+        </button>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(Mensaje))
+    {
+        <div class="alert @(MensajeExitoso ? "alert-success" : "alert-danger") alert-dismissible-custom"
+             role="alert">
+            @Mensaje
+
+            <button type="button"
+                    class="alert-close"
+                    @onclick="LimpiarMensaje">
+                ×
+            </button>
+        </div>
+    }
+
+    <div class="toolbar-card">
+
+        <div class="search-box">
+            <span class="search-icon">⌕</span>
+
+            <input type="text"
+                   class="form-control"
+                   placeholder="Buscar por nombre o código de barras..."
+                   @bind="TextoBusqueda"
+                   @bind:event="oninput" />
+        </div>
+
+        <div class="filters">
+
+            <select class="form-select category-filter"
+                    @bind="CategoriaFiltro">
+                <option value="0">Todas las categorías</option>
+
+                @foreach (var categoria in ListaCategorias.OrderBy(c => c.Nombre))
+                {
+                    <option value="@categoria.Id">
+                        @categoria.Nombre
+                    </option>
+                }
+            </select>
+
+            <button type="button"
+                    class="filter-button @(MostrarSoloActivos ? "active" : "")"
+                    @onclick="AlternarFiltroActivos">
+                @(MostrarSoloActivos ? "Solo activos" : "Todos")
+            </button>
+
+            <span class="result-count">
+                @ProductosFiltrados.Count producto@(ProductosFiltrados.Count == 1 ? "" : "s")
+            </span>
+
+        </div>
+    </div>
+
+    @if (Cargando)
+    {
+        <div class="loading-card">
+            <div class="spinner-border" role="status"></div>
+            <span>Cargando productos...</span>
+        </div>
+    }
+    else if (MostrarFormulario)
+    {
+        <div class="form-card">
+
+            <div class="form-card-header">
+
+                <div>
+                    <h2>
+                        @(Editando ? "Editar producto" : "Nuevo producto")
+                    </h2>
+
+                    <p>
+                        @(Editando
+                            ? "Actualiza la información del producto."
+                            : "Registra un producto y su código de barras.")
+                    </p>
+                </div>
+
+                <button type="button"
+                        class="btn-close-custom"
+                        title="Cerrar"
+                        @onclick="CancelarFormulario">
+                    ×
+                </button>
+
+            </div>
+
+            <div class="form-grid">
+
+                <div class="form-field field-wide">
+
+                    <label for="nombreProducto">
+                        Nombre <span class="required">*</span>
+                    </label>
+
+                    <input id="nombreProducto"
+                           type="text"
+                           class="form-control"
+                           maxlength="150"
+                           placeholder="Ej. Presidente 12 oz"
+                           @bind="NombreFormulario"
+                           @bind:event="oninput" />
+
+                    @if (MostrarErrorNombre)
+                    {
+                        <div class="field-error">
+                            El nombre del producto es obligatorio.
+                        </div>
+                    }
+
+                </div>
+
+                <div class="form-field">
+
+                    <label for="codigoProducto">
+                        Código de barras <span class="required">*</span>
+                    </label>
+
+                    <input id="codigoProducto"
+                           type="text"
+                           class="form-control barcode-input"
+                           maxlength="50"
+                           inputmode="numeric"
+                           autocomplete="off"
+                           placeholder="Escanea o escribe el código"
+                           @bind="CodigoFormulario"
+                           @bind:event="oninput" />
+
+                    <div class="field-help">
+                        Este campo está preparado para lectores USB/Bluetooth.
+                    </div>
+
+                    @if (MostrarErrorCodigo)
+                    {
+                        <div class="field-error">
+                            El código de barras es obligatorio.
+                        </div>
+                    }
+
+                </div>
+
+                <div class="form-field">
+
+                    <label for="categoriaProducto">
+                        Categoría <span class="required">*</span>
+                    </label>
+
+                    <select id="categoriaProducto"
+                            class="form-select"
+                            @bind="CategoriaFormulario">
+
+                        <option value="0">
+                            Seleccionar categoría
+                        </option>
+
+                        @foreach (var categoria in ListaCategorias.OrderBy(c => c.Nombre))
+                        {
+                            <option value="@categoria.Id">
+                                @categoria.Nombre
+                                @(!categoria.Activa ? " (Inactiva)" : "")
+                            </option>
+                        }
+
+                    </select>
+
+                    @if (MostrarErrorCategoria)
+                    {
+                        <div class="field-error">
+                            Debes seleccionar una categoría.
+                        </div>
+                    }
+
+                </div>
+
+                <div class="form-field">
+
+                    <label for="precioCompra">
+                        Precio de compra <span class="required">*</span>
+                    </label>
+
+                    <input id="precioCompra"
+                           type="number"
+                           class="form-control"
+                           min="0"
+                           step="0.01"
+                           @bind="PrecioCompraFormulario" />
+
+                </div>
+
+                <div class="form-field">
+
+                    <label for="precioVenta">
+                        Precio de venta <span class="required">*</span>
+                    </label>
+
+                    <input id="precioVenta"
+                           type="number"
+                           class="form-control"
+                           min="0.01"
+                           step="0.01"
+                           @bind="PrecioVentaFormulario" />
+
+                </div>
+
+                <div class="form-field field-wide">
+
+                    <label for="descripcionProducto">
+                        Descripción
+                    </label>
+
+                    <textarea id="descripcionProducto"
+                              class="form-control"
+                              maxlength="250"
+                              rows="3"
+                              placeholder="Descripción del producto"
+                              @bind="DescripcionFormulario"
+                              @bind:event="oninput"></textarea>
+
+                </div>
+
+                @if (Editando)
+                {
+                    <div class="form-field form-field-checkbox">
+
+                        <label class="checkbox-label">
+
+                            <input type="checkbox"
+                                   @bind="ActivoFormulario" />
+
+                            <span>Producto activo</span>
+
+                        </label>
+
+                    </div>
+                }
+
+            </div>
+
+            <div class="form-actions">
+
+                <button type="button"
+                        class="btn btn-secondary"
+                        @onclick="CancelarFormulario"
+                        disabled="@Guardando">
+                    Cancelar
+                </button>
+
+                <button type="button"
+                        class="btn btn-primary"
+                        @onclick="GuardarProducto"
+                        disabled="@Guardando">
+
+                    @if (Guardando)
+                    {
+                        <span class="spinner-border spinner-border-sm me-2"
+                              role="status">
+                        </span>
+                    }
+
+                    @(Editando ? "Guardar cambios" : "Crear producto")
+                </button>
+
+            </div>
+
+        </div>
+    }
+
+    <div class="table-card">
+
+        @if (ProductosFiltrados.Count == 0)
+        {
+            <div class="empty-state">
+
+                <div class="empty-icon">▦</div>
+
+                <h3>No hay productos</h3>
+
+                <p>
+                    @(string.IsNullOrWhiteSpace(TextoBusqueda)
+                        ? "Todavía no se han registrado productos."
+                        : "No encontramos productos que coincidan con la búsqueda.")
+                </p>
+
+                @if (string.IsNullOrWhiteSpace(TextoBusqueda))
+                {
+                    <button type="button"
+                            class="btn btn-primary"
+                            @onclick="PrepararNuevoProducto">
+                        Crear primer producto
+                    </button>
+                }
+
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+
+                <table class="table products-table">
+
+                    <thead>
+                        <tr>
+                            <th>Producto</th>
+                            <th>Código de barras</th>
+                            <th>Categoría</th>
+                            <th class="text-end">Compra</th>
+                            <th class="text-end">Venta</th>
+                            <th class="text-center">Estado</th>
+                            <th class="text-end">Acciones</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        @foreach (var producto in ProductosFiltrados)
+                        {
+                            <tr>
+
+                                <td>
+                                    <div class="product-name">
+                                        <span class="product-dot"></span>
+
+                                        <div>
+                                            <strong>
+                                                @producto.Nombre
+                                            </strong>
+
+                                            @if (!string.IsNullOrWhiteSpace(producto.Descripcion))
+                                            {
+                                                <small>
+                                                    @producto.Descripcion
+                                                </small>
+                                            }
+                                        </div>
+                                    </div>
+                                </td>
+
+                                <td>
+                                    <code class="barcode-code">
+                                        @producto.Codigo
+                                    </code>
+                                </td>
+
+                                <td>
+                                    <span class="category-badge">
+                                        @producto.Categoria.Nombre
+                                    </span>
+                                </td>
+
+                                <td class="text-end">
+                                    RD$ @producto.PrecioCompra.ToString("N2")
+                                </td>
+
+                                <td class="text-end price-sale">
+                                    RD$ @producto.PrecioVenta.ToString("N2")
+                                </td>
+
+                                <td class="text-center">
+
+                                    @if (producto.Activo)
+                                    {
+                                        <span class="status-badge active">
+                                            Activo
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="status-badge inactive">
+                                            Inactivo
+                                        </span>
+                                    }
+
+                                </td>
+
+                                <td class="text-end">
+
+                                    <div class="action-buttons">
+
+                                        <button type="button"
+                                                class="btn-action edit"
+                                                @onclick="() => PrepararEdicion(producto)">
+                                            Editar
+                                        </button>
+
+                                        @if (producto.Activo)
+                                        {
+                                            <button type="button"
+                                                    class="btn-action disable"
+                                                    @onclick="() => CambiarEstado(producto, false)">
+                                                Desactivar
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <button type="button"
+                                                    class="btn-action enable"
+                                                    @onclick="() => CambiarEstado(producto, true)">
+                                                Activar
+                                            </button>
+                                        }
+
+                                        <button type="button"
+                                                class="btn-action delete"
+                                                @onclick="() => EliminarProducto(producto)">
+                                            Eliminar
+                                        </button>
+
+                                    </div>
+
+                                </td>
+
+                            </tr>
+                        }
+
+                    </tbody>
+
+                </table>
+
+            </div>
+        }
+
+    </div>
+
+</div>
+
+@code {
+
+    private List<Producto> ListaProductos { get; set; } = new();
+
+    private List<Categoria> ListaCategorias { get; set; } = new();
+
+    private string TextoBusqueda { get; set; } = string.Empty;
+
+    private int CategoriaFiltro { get; set; }
+
+    private bool MostrarSoloActivos { get; set; }
+
+    private bool MostrarFormulario { get; set; }
+
+    private bool Editando { get; set; }
+
+    private bool Cargando { get; set; }
+
+    private bool Guardando { get; set; }
+
+    private bool MostrarErrorNombre { get; set; }
+
+    private bool MostrarErrorCodigo { get; set; }
+
+    private bool MostrarErrorCategoria { get; set; }
+
+    private int ProductoEditandoId { get; set; }
+
+    private string NombreFormulario { get; set; } = string.Empty;
+
+    private string CodigoFormulario { get; set; } = string.Empty;
+
+    private string DescripcionFormulario { get; set; } = string.Empty;
+
+    private decimal PrecioCompraFormulario { get; set; }
+
+    private decimal PrecioVentaFormulario { get; set; }
+
+    private int CategoriaFormulario { get; set; }
+
+    private bool ActivoFormulario { get; set; } = true;
+
+    private string Mensaje { get; set; } = string.Empty;
+
+    private bool MensajeExitoso { get; set; }
+
+    private List<Producto> ProductosFiltrados
+    {
+        get
+        {
+            IEnumerable<Producto> consulta =
+                ListaProductos;
+
+            if (MostrarSoloActivos)
+            {
+                consulta = consulta.Where(
+                    p => p.Activo);
+            }
+
+            if (CategoriaFiltro > 0)
+            {
+                consulta = consulta.Where(
+                    p => p.CategoriaId == CategoriaFiltro);
+            }
+
+            if (!string.IsNullOrWhiteSpace(TextoBusqueda))
+            {
+                var busqueda =
+                    TextoBusqueda.Trim();
+
+                consulta = consulta.Where(p =>
+                    p.Nombre.Contains(
+                        busqueda,
+                        StringComparison.OrdinalIgnoreCase)
+                    ||
+                    p.Codigo.Contains(
+                        busqueda,
+                        StringComparison.OrdinalIgnoreCase)
+                    ||
+                    (!string.IsNullOrWhiteSpace(p.Descripcion) &&
+                     p.Descripcion.Contains(
+                         busqueda,
+                         StringComparison.OrdinalIgnoreCase)));
+            }
+
+            return consulta
+                .OrderBy(p => p.Nombre)
+                .ToList();
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarDatosAsync();
+    }
+
+    private async Task CargarDatosAsync()
+    {
+        Cargando = true;
+
+        try
+        {
+            var productos =
+                await ProductoService.ObtenerTodasAsync(
+                    incluirInactivos: true);
+
+            var categorias =
+                await CategoriaService.ObtenerTodasAsync(
+                    incluirInactivas: true);
+
+            ListaProductos =
+                productos.ToList();
+
+            ListaCategorias =
+                categorias.ToList();
+        }
+        catch (Exception ex)
+        {
+            MostrarMensaje(
+                false,
+                $"No fue posible cargar los productos: {ex.Message}");
+        }
+        finally
+        {
+            Cargando = false;
+        }
+    }
+
+    private void PrepararNuevoProducto()
+    {
+        Editando = false;
+        ProductoEditandoId = 0;
+
+        NombreFormulario = string.Empty;
+        CodigoFormulario = string.Empty;
+        DescripcionFormulario = string.Empty;
+
+        PrecioCompraFormulario = 0;
+        PrecioVentaFormulario = 0;
+
+        CategoriaFormulario = 0;
+        ActivoFormulario = true;
+
+        MostrarErrorNombre = false;
+        MostrarErrorCodigo = false;
+        MostrarErrorCategoria = false;
+
+        MostrarFormulario = true;
+
+        LimpiarMensaje();
+    }
+
+    private void PrepararEdicion(Producto producto)
+    {
+        Editando = true;
+        ProductoEditandoId = producto.Id;
+
+        NombreFormulario = producto.Nombre;
+        CodigoFormulario = producto.Codigo;
+        DescripcionFormulario = producto.Descripcion ?? string.Empty;
+
+        PrecioCompraFormulario = producto.PrecioCompra;
+        PrecioVentaFormulario = producto.PrecioVenta;
+
+        CategoriaFormulario = producto.CategoriaId;
+        ActivoFormulario = producto.Activo;
+
+        MostrarErrorNombre = false;
+        MostrarErrorCodigo = false;
+        MostrarErrorCategoria = false;
+
+        MostrarFormulario = true;
+
+        LimpiarMensaje();
+    }
+
+    private void CancelarFormulario()
+    {
+        MostrarFormulario = false;
+        Editando = false;
+        ProductoEditandoId = 0;
+
+        NombreFormulario = string.Empty;
+        CodigoFormulario = string.Empty;
+        DescripcionFormulario = string.Empty;
+
+        PrecioCompraFormulario = 0;
+        PrecioVentaFormulario = 0;
+
+        CategoriaFormulario = 0;
+        ActivoFormulario = true;
+
+        MostrarErrorNombre = false;
+        MostrarErrorCodigo = false;
+        MostrarErrorCategoria = false;
+    }
+
+    private async Task GuardarProducto()
+    {
+        MostrarErrorNombre =
+            string.IsNullOrWhiteSpace(
+                NombreFormulario);
+
+        MostrarErrorCodigo =
+            string.IsNullOrWhiteSpace(
+                CodigoFormulario);
+
+        MostrarErrorCategoria =
+            CategoriaFormulario <= 0;
+
+        if (MostrarErrorNombre ||
+            MostrarErrorCodigo ||
+            MostrarErrorCategoria)
+        {
+            MostrarMensaje(
+                false,
+                "Completa los campos obligatorios del producto.");
+
+            return;
+        }
+
+        Guardando = true;
+
+        try
+        {
+            var resultado = Editando
+                ? await ProductoService.ActualizarAsync(
+                    ProductoEditandoId,
+                    NombreFormulario,
+                    CodigoFormulario,
+                    DescripcionFormulario,
+                    PrecioCompraFormulario,
+                    PrecioVentaFormulario,
+                    CategoriaFormulario,
+                    ActivoFormulario)
+
+                : await ProductoService.CrearAsync(
+                    NombreFormulario,
+                    CodigoFormulario,
+                    DescripcionFormulario,
+                    PrecioCompraFormulario,
+                    PrecioVentaFormulario,
+                    CategoriaFormulario);
+
+            MostrarMensaje(
+                resultado.Exitoso,
+                resultado.Mensaje);
+
+            if (resultado.Exitoso)
+            {
+                CancelarFormulario();
+
+                await CargarDatosAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            MostrarMensaje(
+                false,
+                $"Ocurrió un error al guardar el producto: {ex.Message}");
+        }
+        finally
+        {
+            Guardando = false;
+        }
+    }
+
+    private async Task CambiarEstado(
+        Producto producto,
+        bool nuevoEstado)
+    {
+        var resultado =
+            await ProductoService.CambiarEstadoAsync(
+                producto.Id,
+                nuevoEstado);
+
+        MostrarMensaje(
+            resultado.Exitoso,
+            resultado.Mensaje);
+
+        if (resultado.Exitoso)
+        {
+            await CargarDatosAsync();
+        }
+    }
+
+    private async Task EliminarProducto(
+        Producto producto)
+    {
+        var resultado =
+            await ProductoService.EliminarAsync(
+                producto.Id);
+
+        MostrarMensaje(
+            resultado.Exitoso,
+            resultado.Mensaje);
+    }
+
+    private void AlternarFiltroActivos()
+    {
+        MostrarSoloActivos =
+            !MostrarSoloActivos;
+    }
+
+    private void MostrarMensaje(
+        bool exitoso,
+        string mensaje)
+    {
+        MensajeExitoso = exitoso;
+        Mensaje = mensaje;
+    }
+
+    private void LimpiarMensaje()
+    {
+        Mensaje = string.Empty;
+        MensajeExitoso = false;
+    }
+}

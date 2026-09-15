@@ -1,0 +1,370 @@
+﻿.categorias-page {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding-bottom: 2rem;
+}
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.page-header h1 {
+    margin: 0;
+    font-size: 2rem;
+    font-weight: 700;
+}
+
+.page-subtitle {
+    margin: .4rem 0 0;
+    color: #6c757d;
+}
+
+.button-icon {
+    font-size: 1.2rem;
+    margin-right: .35rem;
+}
+
+.alert-dismissible-custom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    border: none;
+    border-radius: .75rem;
+}
+
+.alert-close {
+    border: none;
+    background: transparent;
+    font-size: 1.5rem;
+    line-height: 1;
+    opacity: .7;
+}
+
+.toolbar-card,
+.form-card,
+.table-card,
+.loading-card {
+    background: #fff;
+    border: 1px solid #e9ecef;
+    border-radius: 1rem;
+    box-shadow: 0 .125rem .5rem rgba(0, 0, 0, .05);
+}
+
+.toolbar-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.search-box {
+    position: relative;
+    flex: 1;
+    max-width: 520px;
+}
+
+.search-box .form-control {
+    padding-left: 2.5rem;
+}
+
+.search-icon {
+    position: absolute;
+    left: .9rem;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 1;
+    color: #6c757d;
+    font-size: 1.2rem;
+}
+
+.filter-group {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+}
+
+.filter-button {
+    border: 1px solid #ced4da;
+    background: #fff;
+    color: #495057;
+    padding: .5rem .9rem;
+    border-radius: .5rem;
+    cursor: pointer;
+}
+
+.filter-button.active {
+    background: #212529;
+    border-color: #212529;
+    color: #fff;
+}
+
+.result-count {
+    color: #6c757d;
+    white-space: nowrap;
+    font-size: .9rem;
+}
+
+.form-card {
+    margin-bottom: 1rem;
+    padding: 1.25rem;
+}
+
+.form-card-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+}
+
+.form-card-header h2 {
+    margin: 0;
+    font-size: 1.3rem;
+}
+
+.form-card-header p {
+    margin: .3rem 0 0;
+    color: #6c757d;
+    font-size: .9rem;
+}
+
+.btn-close-custom {
+    width: 2rem;
+    height: 2rem;
+    border: none;
+    background: #f1f3f5;
+    border-radius: 50%;
+    font-size: 1.25rem;
+    line-height: 1;
+    color: #495057;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+}
+
+.form-field {
+    min-width: 0;
+}
+
+.form-field label {
+    display: block;
+    margin-bottom: .4rem;
+    font-weight: 600;
+}
+
+.required {
+    color: #dc3545;
+}
+
+.field-error {
+    color: #dc3545;
+    font-size: .85rem;
+    margin-top: .35rem;
+}
+
+.form-field-checkbox {
+    display: flex;
+    align-items: end;
+}
+
+.checkbox-label {
+    display: inline-flex !important;
+    align-items: center;
+    gap: .5rem;
+    cursor: pointer;
+    margin-bottom: .6rem !important;
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: .75rem;
+    margin-top: 1.25rem;
+}
+
+.table-card {
+    overflow: hidden;
+}
+
+.categories-table {
+    margin: 0;
+    vertical-align: middle;
+}
+
+.categories-table thead th {
+    background: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+    font-size: .8rem;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    color: #6c757d;
+    white-space: nowrap;
+}
+
+.categories-table td {
+    padding: 1rem;
+}
+
+.category-name {
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+    font-weight: 600;
+}
+
+.category-dot {
+    width: .65rem;
+    height: .65rem;
+    border-radius: 50%;
+    background: currentColor;
+    opacity: .7;
+}
+
+.description-cell {
+    color: #6c757d;
+}
+
+.product-count {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    min-width: 2rem;
+    min-height: 2rem;
+    padding: .2rem .55rem;
+    background: #f1f3f5;
+    border-radius: .5rem;
+    font-weight: 600;
+}
+
+.status-badge {
+    display: inline-flex;
+    padding: .35rem .65rem;
+    border-radius: 2rem;
+    font-size: .8rem;
+    font-weight: 600;
+}
+
+.status-badge.active {
+    background: #d1e7dd;
+    color: #0f5132;
+}
+
+.status-badge.inactive {
+    background: #e9ecef;
+    color: #495057;
+}
+
+.action-buttons {
+    display: flex;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: .4rem;
+}
+
+.btn-action {
+    border: 1px solid transparent;
+    background: transparent;
+    border-radius: .4rem;
+    padding: .4rem .65rem;
+    font-size: .8rem;
+    cursor: pointer;
+}
+
+.btn-action.edit {
+    color: #0d6efd;
+    background: #e7f1ff;
+}
+
+.btn-action.disable {
+    color: #664d03;
+    background: #fff3cd;
+}
+
+.btn-action.enable {
+    color: #0f5132;
+    background: #d1e7dd;
+}
+
+.btn-action.delete {
+    color: #842029;
+    background: #f8d7da;
+}
+
+.empty-state,
+.loading-card {
+    min-height: 320px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 2rem;
+}
+
+.empty-icon {
+    font-size: 3rem;
+    color: #adb5bd;
+    margin-bottom: .75rem;
+}
+
+.empty-state h3 {
+    margin-bottom: .4rem;
+}
+
+.empty-state p {
+    max-width: 420px;
+    color: #6c757d;
+    margin-bottom: 1.25rem;
+}
+
+.loading-card {
+    gap: .75rem;
+    color: #6c757d;
+}
+
+@media (max-width: 900px) {
+    .toolbar-card,
+    .page-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .search-box {
+        max-width: none;
+    }
+
+    .filter-group {
+        justify-content: space-between;
+    }
+
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .action-buttons {
+        justify-content: flex-start;
+    }
+}
+
+@media (max-width: 600px) {
+    .categorias-page {
+        padding: 0 .5rem 1rem;
+    }
+
+    .page-header h1 {
+        font-size: 1.6rem;
+    }
+
+    .categories-table {
+        min-width: 800px;
+    }
+}

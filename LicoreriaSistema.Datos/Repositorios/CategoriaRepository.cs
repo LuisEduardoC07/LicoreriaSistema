@@ -1,4 +1,4 @@
-using LibreriaSistema.Aplicacion.Interfaces;
+﻿using LibreriaSistema.Aplicacion.Interfaces;
 using LicoreriaSistema.Datos.Context;
 using LicoreriaSistema.Dominio.Entidades;
 using Microsoft.EntityFrameworkCore;
@@ -58,10 +58,12 @@ public class CategoriaRepository : ICategoriaRepository
 
         if (excluirId.HasValue)
         {
-            consulta = consulta.Where(c => c.Id != excluirId.Value);
+            consulta = consulta.Where(
+                c => c.Id != excluirId.Value);
         }
 
-        return await consulta.AnyAsync(cancellationToken);
+        return await consulta.AnyAsync(
+            cancellationToken);
     }
 
     public async Task<bool> TieneProductosAsync(
@@ -84,18 +86,30 @@ public class CategoriaRepository : ICategoriaRepository
             cancellationToken);
     }
 
-    public Task ActualizarAsync(
+    public async Task ActualizarAsync(
         Categoria categoria,
         CancellationToken cancellationToken = default)
     {
-        _context.Categorias.Update(categoria);
-
-        return Task.CompletedTask;
+        await _context.Categorias
+            .Where(c => c.Id == categoria.Id)
+            .ExecuteUpdateAsync(
+                setters => setters
+                    .SetProperty(
+                        c => c.Nombre,
+                        categoria.Nombre)
+                    .SetProperty(
+                        c => c.Descripcion,
+                        categoria.Descripcion)
+                    .SetProperty(
+                        c => c.Activa,
+                        categoria.Activa),
+                cancellationToken);
     }
 
     public async Task GuardarCambiosAsync(
         CancellationToken cancellationToken = default)
     {
-        await _context.SaveChangesAsync(cancellationToken);
+        await _context.SaveChangesAsync(
+            cancellationToken);
     }
 }
