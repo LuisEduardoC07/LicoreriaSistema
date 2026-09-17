@@ -19,12 +19,21 @@ public static class DependencyInjection
             ?? throw new InvalidOperationException(
                 "No se encontró la cadena de conexión 'LicoreriaDb'.");
 
-        services.AddDbContext<LicoreriaDbContext>(options =>
-            options.UseSqlServer(connectionString));
+        services.AddDbContext<LicoreriaDbContext>(
+            options =>
+                options.UseSqlServer(connectionString));
 
         services.AddScoped<
             IUsuarioRepository,
             UsuarioRepository>();
+
+        services.AddScoped<
+            IRolRepository,
+            RolRepository>();
+
+        services.AddScoped<
+            IPermisoRepository,
+            PermisoRepository>();
 
         services.AddScoped<
             ICategoriaRepository,
@@ -49,6 +58,10 @@ public static class DependencyInjection
         services.AddScoped<InventarioService>();
 
         services.AddScoped<SucursalService>();
+
+        services.AddScoped<RolService>();
+
+        services.AddScoped<UsuarioService>();
 
         services.AddScoped<
             IAutenticacionService,

@@ -1,0 +1,663 @@
+﻿@page "/roles"
+
+@attribute [Authorize(Policy = "Permiso:ROLES_GESTIONAR")]
+@attribute [Authorize(Roles = "SuperAdministrador")]
+@using LicoreriaSistema.Dominio.Entidades
+@using LibreriaSistema.Aplicacion.Modelos
+@using LibreriaSistema.Aplicacion.Servicios
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@rendermode InteractiveServer
+@inject RolService RolService
+
+<PageTitle>Roles y permisos</PageTitle>
+
+<div class="roles-page">
+
+    <div class="page-header">
+        <div>
+            <span class="eyebrow">SEGURIDAD</span>
+            <h1>Roles y permisos</h1>
+            <p>
+                Administra los roles y define los permisos
+                disponibles para cada perfil.
+            </p>
+        </div>
+
+        <button
+            type="button"
+            class="primary-button"
+            @onclick="NuevoRol">
+            + Nuevo rol
+        </button>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(Mensaje))
+    {
+        <div class="alert @(OperacionExitosa
+            ? "alert-success"
+            : "alert-error")">
+            @Mensaje
+        </div>
+    }
+
+    <div class="content-grid">
+
+        <section class="roles-panel">
+
+            <div class="panel-header">
+                <div>
+                    <h2>Roles registrados</h2>
+                    <span>@RolesRegistrados.Count rol(es)</span>
+                </div>
+            </div>
+
+            @if (Cargando)
+            {
+                <div class="empty-state">
+                    Cargando roles...
+                </div>
+            }
+            else if (RolesRegistrados.Count == 0)
+            {
+                <div class="empty-state">
+                    No hay roles registrados.
+                </div>
+            }
+            else
+            {
+                <div class="roles-list">
+
+                    @foreach (var rol in RolesRegistrados)
+                    {
+                        <button
+                            type="button"
+                            class="role-card @(RolSeleccionado?.Id == rol.Id
+                                ? "selected"
+                                : "")"
+                            @onclick="() => SeleccionarRol(rol)">
+
+                            <div class="role-card-top">
+
+                                <div class="role-icon">
+                                    @rol.Id
+                                </div>
+
+                                <span class="status-badge @(rol.Activo
+                                    ? "active"
+                                    : "inactive")">
+                                    @(rol.Activo
+                                        ? "Activo"
+                                        : "Inactivo")
+                                </span>
+
+                            </div>
+
+                            <h3>@rol.Nombre</h3>
+
+                            <p>
+                                @(string.IsNullOrWhiteSpace(rol.Descripcion)
+                                    ? "Sin descripción."
+                                    : rol.Descripcion)
+                            </p>
+
+                            <div class="role-meta">
+                                <span>
+                                    @rol.Usuarios.Count usuario(s)
+                                </span>
+
+                                <span>
+                                    @rol.RolPermisos.Count permiso(s)
+                                </span>
+                            </div>
+
+                        </button>
+                    }
+
+                </div>
+            }
+
+        </section>
+
+        <section class="editor-panel">
+
+            @if (ModoNuevo)
+            {
+                <div class="panel-header">
+                    <div>
+                        <span class="eyebrow">NUEVO</span>
+                        <h2>Crear rol</h2>
+                    </div>
+                </div>
+
+                <div class="form-grid">
+
+                    <div class="field">
+                        <label>Nombre</label>
+
+                        <input
+                            @bind="NombreEditado"
+                            maxlength="100" />
+                    </div>
+
+                    <div class="field">
+                        <label>Estado</label>
+
+                        <select @bind="ActivoEditado">
+                            <option value="True">Activo</option>
+                            <option value="False">Inactivo</option>
+                        </select>
+                    </div>
+
+                    <div class="field full">
+                        <label>Descripción</label>
+
+                        <textarea
+                            @bind="DescripcionEditada"
+                            maxlength="250"
+                            rows="3">
+                        </textarea>
+                    </div>
+
+                </div>
+
+                <div class="actions-row">
+
+                    <button
+                        type="button"
+                        class="primary-button"
+                        @onclick="GuardarRol">
+                        Crear rol
+                    </button>
+
+                    <button
+                        type="button"
+                        class="secondary-button"
+                        @onclick="CancelarNuevoRol">
+                        Cancelar
+                    </button>
+
+                </div>
+            }
+            else if (RolSeleccionado is null)
+            {
+                <div class="editor-empty">
+                    <div class="editor-empty-icon">🔐</div>
+
+                    <h2>Selecciona un rol</h2>
+
+                    <p>
+                        Selecciona un rol para editar sus datos
+                        y administrar sus permisos.
+                    </p>
+                </div>
+            }
+            else
+            {
+                <div class="panel-header">
+
+                    <div>
+                        <span class="eyebrow">
+                            ROL SELECCIONADO
+                        </span>
+
+                        <h2>@RolSeleccionado.Nombre</h2>
+                    </div>
+
+                    <button
+                        type="button"
+                        class="secondary-button"
+                        @onclick="EditarRol">
+                        Editar
+                    </button>
+
+                </div>
+
+                @if (ModoEdicion)
+                {
+                    <div class="form-grid">
+
+                        <div class="field">
+                            <label>Nombre</label>
+
+                            <input
+                                @bind="NombreEditado"
+                                maxlength="100" />
+                        </div>
+
+                        <div class="field">
+                            <label>Estado</label>
+
+                            <select @bind="ActivoEditado">
+                                <option value="True">Activo</option>
+                                <option value="False">Inactivo</option>
+                            </select>
+                        </div>
+
+                        <div class="field full">
+                            <label>Descripción</label>
+
+                            <textarea
+                                @bind="DescripcionEditada"
+                                maxlength="250"
+                                rows="3">
+                            </textarea>
+                        </div>
+
+                    </div>
+
+                    <div class="actions-row">
+
+                        <button
+                            type="button"
+                            class="primary-button"
+                            @onclick="GuardarRol">
+                            Guardar
+                        </button>
+
+                        <button
+                            type="button"
+                            class="secondary-button"
+                            @onclick="CancelarEdicion">
+                            Cancelar
+                        </button>
+
+                    </div>
+                }
+                else
+                {
+                    <div class="summary-box">
+
+                        <div>
+                            <span class="summary-label">
+                                Descripción
+                            </span>
+
+                            <strong>
+                                @(string.IsNullOrWhiteSpace(
+                                    RolSeleccionado.Descripcion)
+                                    ? "Sin descripción."
+                                    : RolSeleccionado.Descripcion)
+                            </strong>
+                        </div>
+
+                        <div>
+                            <span class="summary-label">
+                                Usuarios
+                            </span>
+
+                            <strong>
+                                @RolSeleccionado.Usuarios.Count
+                            </strong>
+                        </div>
+
+                        <div>
+                            <span class="summary-label">
+                                Permisos
+                            </span>
+
+                            <strong>
+                                @RolSeleccionado.RolPermisos.Count
+                            </strong>
+                        </div>
+
+                    </div>
+                }
+
+                <div class="permissions-header">
+
+                    <div>
+                        <h2>Permisos</h2>
+
+                        <span>
+                            Marca las capacidades que este rol
+                            puede utilizar.
+                        </span>
+                    </div>
+
+                    <span class="permissions-count">
+                        @PermisosSeleccionados.Count seleccionados
+                    </span>
+
+                </div>
+
+                <div class="permissions-grid">
+
+                    @foreach (var permiso in Permisos)
+                    {
+                        <label class="permission-item">
+
+                            <input
+                                type="checkbox"
+                                checked="@PermisosSeleccionados.Contains(
+                                    permiso.Id)"
+                                @onchange="e => CambiarPermiso(
+                                    permiso.Id,
+                                    e.Value is bool value && value)" />
+
+                            <span>
+
+                                <strong>@permiso.Nombre</strong>
+
+                                <small>@permiso.Codigo</small>
+
+                            </span>
+
+                        </label>
+                    }
+
+                </div>
+
+                <div class="actions-row permission-actions">
+
+                    <button
+                        type="button"
+                        class="primary-button"
+                        @onclick="GuardarPermisos">
+                        Guardar permisos
+                    </button>
+
+                    @if (RolSeleccionado.Id != 1)
+                    {
+                        <button
+                            type="button"
+                            class="danger-button"
+                            @onclick="CambiarEstadoRol">
+                            @(RolSeleccionado.Activo
+                                ? "Desactivar rol"
+                                : "Activar rol")
+                        </button>
+                    }
+
+                </div>
+            }
+
+        </section>
+
+    </div>
+
+</div>
+
+@code {
+    private List<Rol> RolesRegistrados { get; set; } = new();
+
+    private List<Permiso> Permisos { get; set; } = new();
+
+    private Rol? RolSeleccionado { get; set; }
+
+    private HashSet<int> PermisosSeleccionados { get; set; } = new();
+
+    private bool Cargando { get; set; } = true;
+
+    private bool ModoNuevo { get; set; }
+
+    private bool ModoEdicion { get; set; }
+
+    private string NombreEditado { get; set; } = string.Empty;
+
+    private string DescripcionEditada { get; set; } = string.Empty;
+
+    private bool ActivoEditado { get; set; } = true;
+
+    private string Mensaje { get; set; } = string.Empty;
+
+    private bool OperacionExitosa { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarDatos();
+    }
+
+    private async Task CargarDatos()
+    {
+        Cargando = true;
+
+        RolesRegistrados = (
+            await RolService.ObtenerTodosAsync()
+        ).ToList();
+
+        Permisos = (
+            await RolService.ObtenerPermisosAsync()
+        ).ToList();
+
+        Cargando = false;
+
+        if (RolesRegistrados.Count > 0 && RolSeleccionado is null)
+        {
+            SeleccionarRol(RolesRegistrados[0]);
+        }
+    }
+
+    private void SeleccionarRol(Rol rol)
+    {
+        RolSeleccionado = rol;
+
+        PermisosSeleccionados = rol.RolPermisos
+            .Where(rp => rp.Permiso.Activo)
+            .Select(rp => rp.PermisoId)
+            .ToHashSet();
+
+        NombreEditado = rol.Nombre;
+        DescripcionEditada = rol.Descripcion ?? string.Empty;
+        ActivoEditado = rol.Activo;
+
+        ModoNuevo = false;
+        ModoEdicion = false;
+
+        LimpiarMensaje();
+    }
+
+    private void NuevoRol()
+    {
+        RolSeleccionado = null;
+
+        ModoNuevo = true;
+        ModoEdicion = false;
+
+        NombreEditado = string.Empty;
+        DescripcionEditada = string.Empty;
+        ActivoEditado = true;
+
+        PermisosSeleccionados = new HashSet<int>();
+
+        LimpiarMensaje();
+    }
+
+    private void EditarRol()
+    {
+        if (RolSeleccionado is null)
+        {
+            return;
+        }
+
+        NombreEditado = RolSeleccionado.Nombre;
+        DescripcionEditada =
+            RolSeleccionado.Descripcion ?? string.Empty;
+
+        ActivoEditado = RolSeleccionado.Activo;
+
+        ModoNuevo = false;
+        ModoEdicion = true;
+    }
+
+    private void CancelarNuevoRol()
+    {
+        ModoNuevo = false;
+
+        if (RolesRegistrados.Count > 0)
+        {
+            SeleccionarRol(RolesRegistrados[0]);
+        }
+    }
+
+    private void CancelarEdicion()
+    {
+        ModoEdicion = false;
+
+        if (RolSeleccionado is not null)
+        {
+            NombreEditado = RolSeleccionado.Nombre;
+            DescripcionEditada =
+                RolSeleccionado.Descripcion ?? string.Empty;
+
+            ActivoEditado = RolSeleccionado.Activo;
+        }
+    }
+
+    private async Task GuardarRol()
+    {
+        ResultadoOperacion resultado;
+
+        if (ModoNuevo)
+        {
+            resultado = await RolService.CrearAsync(
+                NombreEditado,
+                DescripcionEditada);
+
+            MostrarResultado(resultado);
+
+            if (resultado.Exitoso)
+            {
+                ModoNuevo = false;
+
+                RolesRegistrados = (
+                    await RolService.ObtenerTodosAsync()
+                ).ToList();
+
+                var nuevoRol = RolesRegistrados
+                    .OrderByDescending(r => r.Id)
+                    .FirstOrDefault();
+
+                if (nuevoRol is not null)
+                {
+                    SeleccionarRol(nuevoRol);
+                }
+            }
+
+            return;
+        }
+
+        if (RolSeleccionado is null)
+        {
+            return;
+        }
+
+        resultado = await RolService.ActualizarAsync(
+            RolSeleccionado.Id,
+            NombreEditado,
+            DescripcionEditada,
+            ActivoEditado);
+
+        MostrarResultado(resultado);
+
+        if (resultado.Exitoso)
+        {
+            var idRol = RolSeleccionado.Id;
+
+            RolesRegistrados = (
+                await RolService.ObtenerTodosAsync()
+            ).ToList();
+
+            var rolActualizado = RolesRegistrados
+                .FirstOrDefault(r => r.Id == idRol);
+
+            if (rolActualizado is not null)
+            {
+                SeleccionarRol(rolActualizado);
+            }
+        }
+    }
+
+    private async Task CambiarEstadoRol()
+    {
+        if (RolSeleccionado is null)
+        {
+            return;
+        }
+
+        var resultado =
+            await RolService.CambiarEstadoAsync(
+                RolSeleccionado.Id,
+                !RolSeleccionado.Activo);
+
+        MostrarResultado(resultado);
+
+        if (resultado.Exitoso)
+        {
+            var idRol = RolSeleccionado.Id;
+
+            RolesRegistrados = (
+                await RolService.ObtenerTodosAsync()
+            ).ToList();
+
+            var rolActualizado = RolesRegistrados
+                .FirstOrDefault(r => r.Id == idRol);
+
+            if (rolActualizado is not null)
+            {
+                SeleccionarRol(rolActualizado);
+            }
+        }
+    }
+
+    private void CambiarPermiso(
+        int permisoId,
+        bool seleccionado)
+    {
+        if (seleccionado)
+        {
+            PermisosSeleccionados.Add(permisoId);
+        }
+        else
+        {
+            PermisosSeleccionados.Remove(permisoId);
+        }
+    }
+
+    private async Task GuardarPermisos()
+    {
+        if (RolSeleccionado is null)
+        {
+            return;
+        }
+
+        var resultado =
+            await RolService.GuardarPermisosAsync(
+                RolSeleccionado.Id,
+                PermisosSeleccionados);
+
+        MostrarResultado(resultado);
+
+        if (resultado.Exitoso)
+        {
+            var idRol = RolSeleccionado.Id;
+
+            RolesRegistrados = (
+                await RolService.ObtenerTodosAsync()
+            ).ToList();
+
+            var rolActualizado = RolesRegistrados
+                .FirstOrDefault(r => r.Id == idRol);
+
+            if (rolActualizado is not null)
+            {
+                SeleccionarRol(rolActualizado);
+            }
+        }
+    }
+
+    private void MostrarResultado(
+        ResultadoOperacion resultado)
+    {
+        Mensaje = resultado.Mensaje;
+        OperacionExitosa = resultado.Exitoso;
+    }
+
+    private void LimpiarMensaje()
+    {
+        Mensaje = string.Empty;
+        OperacionExitosa = false;
+    }
+}
+
+
+

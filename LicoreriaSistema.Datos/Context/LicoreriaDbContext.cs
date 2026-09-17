@@ -1,4 +1,4 @@
-using LicoreriaSistema.Datos.Data;
+﻿using LicoreriaSistema.Datos.Data;
 using LicoreriaSistema.Dominio.Entidades;
 using Microsoft.EntityFrameworkCore;
 
@@ -16,6 +16,12 @@ public class LicoreriaDbContext : DbContext
     public DbSet<Categoria> Categorias => Set<Categoria>();
     public DbSet<Producto> Productos => Set<Producto>();
     public DbSet<InventarioSucursal> InventariosSucursal => Set<InventarioSucursal>();
+
+    public DbSet<ClasificacionFiscal> ClasificacionesFiscales
+        => Set<ClasificacionFiscal>();
+
+    public DbSet<ReglaImpuesto> ReglasImpuesto
+        => Set<ReglaImpuesto>();
 
     // Seguridad
     public DbSet<Rol> Roles => Set<Rol>();
@@ -92,6 +98,65 @@ public class LicoreriaDbContext : DbContext
                 .WithMany(x => x.Productos)
                 .HasForeignKey(x => x.CategoriaId)
                 .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // =========================================================
+        // =========================================================
+        // CLASIFICACION FISCAL
+        // =========================================================
+
+        modelBuilder.Entity<ClasificacionFiscal>(entity =>
+        {
+            entity.HasKey(x => x.Id);
+
+            entity.Property(x => x.Nombre)
+                .HasMaxLength(100)
+                .IsRequired();
+
+            entity.Property(x => x.Descripcion)
+                .HasMaxLength(250);
+
+            entity.HasIndex(x => x.Nombre)
+                .IsUnique();
+
+            entity.HasMany(x => x.Productos)
+                .WithOne(x => x.ClasificacionFiscal)
+                .HasForeignKey(x => x.ClasificacionFiscalId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasMany(x => x.ReglasImpuesto)
+                .WithOne(x => x.ClasificacionFiscal)
+                .HasForeignKey(x => x.ClasificacionFiscalId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // =========================================================
+        // REGLA DE IMPUESTO
+        // =========================================================
+
+        modelBuilder.Entity<ReglaImpuesto>(entity =>
+        {
+            entity.HasKey(x => x.Id);
+
+            entity.Property(x => x.TipoImpuesto)
+                .HasMaxLength(30)
+                .IsRequired();
+
+            entity.Property(x => x.TasaAdValorem)
+                .HasPrecision(18, 6);
+
+            entity.Property(x => x.MontoEspecifico)
+                .HasPrecision(18, 6);
+
+            entity.Property(x => x.UnidadCalculo)
+                .HasMaxLength(100);
+
+            entity.HasIndex(x => new
+            {
+                x.ClasificacionFiscalId,
+                x.TipoImpuesto,
+                x.FechaInicio
+            });
         });
 
         // =========================================================

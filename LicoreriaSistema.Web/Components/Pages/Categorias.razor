@@ -1,5 +1,7 @@
 ﻿@page "/categorias"
 
+
+@attribute [Authorize(Policy = "Permiso:CATEGORIAS_GESTIONAR")]
 @attribute [Authorize]
 
 @rendermode InteractiveServer
@@ -602,3 +604,4 @@
         MensajeExitoso = false;
     }
 }
+

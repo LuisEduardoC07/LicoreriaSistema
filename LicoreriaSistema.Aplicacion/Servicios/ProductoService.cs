@@ -1,4 +1,5 @@
 ﻿using LibreriaSistema.Aplicacion.Interfaces;
+using LibreriaSistema.Aplicacion.Seguridad;
 using LicoreriaSistema.Dominio.Entidades;
 
 namespace LibreriaSistema.Aplicacion.Servicios;
@@ -6,17 +7,23 @@ namespace LibreriaSistema.Aplicacion.Servicios;
 public class ProductoService
 {
     private readonly IProductoRepository _productoRepository;
+    private readonly IContextoUsuarioActual _contextoUsuarioActual;
 
     public ProductoService(
-        IProductoRepository productoRepository)
+        IProductoRepository productoRepository,
+        IContextoUsuarioActual contextoUsuarioActual)
     {
         _productoRepository = productoRepository;
+        _contextoUsuarioActual = contextoUsuarioActual;
     }
 
     public async Task<IReadOnlyList<Producto>> ObtenerTodasAsync(
         bool incluirInactivos = true,
         CancellationToken cancellationToken = default)
     {
+        ExigirPermiso(
+            PermisosSistema.ProductosConsultar);
+
         return await _productoRepository.ObtenerTodasAsync(
             incluirInactivos,
             cancellationToken);
@@ -26,6 +33,9 @@ public class ProductoService
         int id,
         CancellationToken cancellationToken = default)
     {
+        ExigirPermiso(
+            PermisosSistema.ProductosConsultar);
+
         if (id <= 0)
         {
             return null;
@@ -45,6 +55,14 @@ public class ProductoService
         int categoriaId,
         CancellationToken cancellationToken = default)
     {
+        if (!TienePermiso(
+                PermisosSistema.ProductosGestionar))
+        {
+            return (
+                false,
+                "No tienes permisos para crear productos.");
+        }
+
         nombre = nombre.Trim();
         codigo = codigo.Trim();
         descripcion = descripcion?.Trim();
@@ -109,6 +127,14 @@ public class ProductoService
         bool activo,
         CancellationToken cancellationToken = default)
     {
+        if (!TienePermiso(
+                PermisosSistema.ProductosGestionar))
+        {
+            return (
+                false,
+                "No tienes permisos para modificar productos.");
+        }
+
         nombre = nombre.Trim();
         codigo = codigo.Trim();
         descripcion = descripcion?.Trim();
@@ -183,6 +209,14 @@ public class ProductoService
         bool activo,
         CancellationToken cancellationToken = default)
     {
+        if (!TienePermiso(
+                PermisosSistema.ProductosGestionar))
+        {
+            return (
+                false,
+                "No tienes permisos para activar o desactivar productos.");
+        }
+
         if (id <= 0)
         {
             return (
@@ -222,6 +256,14 @@ public class ProductoService
         int id,
         CancellationToken cancellationToken = default)
     {
+        if (!TienePermiso(
+                PermisosSistema.ProductosGestionar))
+        {
+            return (
+                false,
+                "No tienes permisos para eliminar productos.");
+        }
+
         if (id <= 0)
         {
             return (
@@ -333,4 +375,19 @@ public class ProductoService
 
         return (true, string.Empty);
     }
+
+    private bool TienePermiso(string permiso)
+    {
+        return _contextoUsuarioActual.TienePermiso(permiso);
+    }
+
+    private void ExigirPermiso(string permiso)
+    {
+        if (!_contextoUsuarioActual.TienePermiso(permiso))
+        {
+            throw new UnauthorizedAccessException(
+                "El usuario actual no tiene permisos para realizar esta operación.");
+        }
+    }
 }
+

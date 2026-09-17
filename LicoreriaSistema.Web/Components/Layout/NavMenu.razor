@@ -1,7 +1,14 @@
-﻿
+﻿@using System.Security.Claims
+@using Microsoft.AspNetCore.Components.Authorization
+@using LicoreriaSistema.Web.Seguridad
+
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
 <div class="sidebar-content">
 
-    <!-- MARCA -->
+    <!-- ======================================================
+         MARCA
+         ====================================================== -->
 
     <div class="sidebar-brand">
 
@@ -10,145 +17,360 @@
         </div>
 
         <div class="brand-text">
-            <span class="brand-name">LICORERÍA</span>
-            <span class="brand-type">SISTEMA</span>
+
+            <span class="brand-name">
+                LICORERÍA
+            </span>
+
+            <span class="brand-type">
+                SISTEMA
+            </span>
+
         </div>
 
     </div>
 
 
-    <!-- NAVEGACIÓN -->
+    <!-- ======================================================
+         USUARIO ACTUAL
+         ====================================================== -->
 
-    <nav class="sidebar-nav" aria-label="Navegación principal">
+    <AuthorizeView>
 
-        <!-- PRINCIPAL -->
+        <Authorized Context="auth">
+
+            <div class="sidebar-user">
+
+                <div class="sidebar-user-avatar">
+                    @ObtenerIniciales(
+                        auth.User.FindFirst(
+                            "NombreCompleto")?.Value,
+                        auth.User.Identity?.Name)
+                </div>
+
+                <div class="sidebar-user-info">
+
+                    <strong>
+                        @(auth.User.FindFirst(
+                            "NombreCompleto")?.Value
+                            ?? auth.User.Identity?.Name
+                            ?? "Usuario")
+                    </strong>
+
+                    <span>
+                        @(auth.User.FindFirst(
+                            ClaimTypes.Role)?.Value
+                            ?? "Sin rol")
+                    </span>
+
+                </div>
+
+            </div>
+
+        </Authorized>
+
+    </AuthorizeView>
+
+
+    <!-- ======================================================
+         NAVEGACIÓN
+         ====================================================== -->
+
+    <nav
+        class="sidebar-nav"
+        aria-label="Navegación principal">
+
+        <!-- ==================================================
+             PRINCIPAL
+             ================================================== -->
 
         <div class="nav-section">
-            <span class="nav-section-title">PRINCIPAL</span>
+            <span class="nav-section-title">
+                PRINCIPAL
+            </span>
         </div>
 
-        <NavLink class="nav-item" href="" Match="NavLinkMatch.All">
+        <NavLink
+            class="nav-item"
+            href=""
+            Match="NavLinkMatch.All">
 
             <span class="nav-icon">
-                <svg viewBox="0 0 24 24" aria-hidden="true">
+                <svg
+                    viewBox="0 0 24 24"
+                    aria-hidden="true">
                     <path d="M3 10.5L12 3l9 7.5" />
                     <path d="M5 9.5V21h14V9.5" />
                     <path d="M9 21v-7h6v7" />
                 </svg>
             </span>
 
-            <span class="nav-text">Inicio</span>
-
-        </NavLink>
-
-
-        <!-- GESTIÓN -->
-
-        <div class="nav-section">
-            <span class="nav-section-title">GESTIÓN</span>
-        </div>
-
-        <NavLink class="nav-item" href="productos">
-
-            <span class="nav-icon">
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M4 7h16" />
-                    <path d="M4 12h16" />
-                    <path d="M4 17h10" />
-                    <path d="M17 15h4" />
-                    <path d="M19 13v4" />
-                </svg>
+            <span class="nav-text">
+                Inicio
             </span>
 
-            <span class="nav-text">Productos</span>
-
         </NavLink>
 
 
-        <NavLink class="nav-item" href="inventario">
+        <!-- ==================================================
+             GESTIÓN
+             ================================================== -->
 
-            <span class="nav-icon">
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M4 5h16v14H4z" />
-                    <path d="M8 9h8" />
-                    <path d="M8 13h8" />
-                    <path d="M8 17h5" />
-                </svg>
-            </span>
-
-            <span class="nav-text">Inventario</span>
-
-        </NavLink>
-
-
-        <NavLink class="nav-item" href="categorias">
-
-            <span class="nav-icon">
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <rect x="4" y="4" width="6" height="6" rx="1" />
-                    <rect x="14" y="4" width="6" height="6" rx="1" />
-                    <rect x="4" y="14" width="6" height="6" rx="1" />
-                    <rect x="14" y="14" width="6" height="6" rx="1" />
-                </svg>
-            </span>
-
-            <span class="nav-text">Categorías</span>
-
-        </NavLink>
+        @if (TieneAlgunoDeLosPermisos(
+            PermisosSistema.ProductosConsultar,
+            PermisosSistema.ProductosGestionar,
+            PermisosSistema.InventarioConsultar,
+            PermisosSistema.CategoriasGestionar,
+            PermisosSistema.SucursalesConsultar))
+        {
+            <div class="nav-section">
+                <span class="nav-section-title">
+                    GESTIÓN
+                </span>
+            </div>
+        }
 
 
-        <NavLink class="nav-item" href="sucursales">
+        <AuthorizeView
+            Policy="Permiso:PRODUCTOS_CONSULTAR">
 
-            <span class="nav-icon">
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M12 21s7-6.2 7-12a7 7 0 1 0-14 0c0 5.8 7 12 7 12z" />
-                    <circle cx="12" cy="9" r="2.5" />
-                </svg>
-            </span>
+            <Authorized>
 
-            <span class="nav-text">Sucursales</span>
+                <NavLink
+                    class="nav-item"
+                    href="productos">
 
-        </NavLink>
+                    <span class="nav-icon">
+                        <svg
+                            viewBox="0 0 24 24"
+                            aria-hidden="true">
+                            <path d="M4 7h16" />
+                            <path d="M4 12h16" />
+                            <path d="M4 17h10" />
+                            <path d="M17 15h4" />
+                            <path d="M19 13v4" />
+                        </svg>
+                    </span>
 
+                    <span class="nav-text">
+                        Productos
+                    </span>
 
-        <!-- SEGURIDAD -->
+                </NavLink>
 
-        <div class="nav-section">
-            <span class="nav-section-title">SEGURIDAD</span>
-        </div>
+            </Authorized>
 
-
-        <NavLink class="nav-item" href="usuarios">
-
-            <span class="nav-icon">
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <circle cx="12" cy="8" r="3" />
-                    <path d="M5 20c.8-3.5 3.1-5 7-5s6.2 1.5 7 5" />
-                </svg>
-            </span>
-
-            <span class="nav-text">Usuarios</span>
-
-        </NavLink>
+        </AuthorizeView>
 
 
-        <NavLink class="nav-item" href="roles">
+        <AuthorizeView
+            Policy="Permiso:INVENTARIO_CONSULTAR">
 
-            <span class="nav-icon">
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M12 3l7 3v5c0 4.5-2.8 7.5-7 10-4.2-2.5-7-5.5-7-10V6l7-3z" />
-                    <path d="M9 12l2 2 4-4" />
-                </svg>
-            </span>
+            <Authorized>
 
-            <span class="nav-text">Roles y permisos</span>
+                <NavLink
+                    class="nav-item"
+                    href="inventario">
 
-        </NavLink>
+                    <span class="nav-icon">
+                        <svg
+                            viewBox="0 0 24 24"
+                            aria-hidden="true">
+                            <path d="M4 5h16v14H4z" />
+                            <path d="M8 9h8" />
+                            <path d="M8 13h8" />
+                            <path d="M8 17h5" />
+                        </svg>
+                    </span>
+
+                    <span class="nav-text">
+                        Inventario
+                    </span>
+
+                </NavLink>
+
+            </Authorized>
+
+        </AuthorizeView>
+
+
+        <AuthorizeView
+            Policy="Permiso:CATEGORIAS_GESTIONAR">
+
+            <Authorized>
+
+                <NavLink
+                    class="nav-item"
+                    href="categorias">
+
+                    <span class="nav-icon">
+                        <svg
+                            viewBox="0 0 24 24"
+                            aria-hidden="true">
+                            <rect
+                                x="4"
+                                y="4"
+                                width="6"
+                                height="6"
+                                rx="1" />
+
+                            <rect
+                                x="14"
+                                y="4"
+                                width="6"
+                                height="6"
+                                rx="1" />
+
+                            <rect
+                                x="4"
+                                y="14"
+                                width="6"
+                                height="6"
+                                rx="1" />
+
+                            <rect
+                                x="14"
+                                y="14"
+                                width="6"
+                                height="6"
+                                rx="1" />
+                        </svg>
+                    </span>
+
+                    <span class="nav-text">
+                        Categorías
+                    </span>
+
+                </NavLink>
+
+            </Authorized>
+
+        </AuthorizeView>
+
+
+        <AuthorizeView
+            Policy="Permiso:SUCURSALES_CONSULTAR">
+
+            <Authorized>
+
+                <NavLink
+                    class="nav-item"
+                    href="sucursales">
+
+                    <span class="nav-icon">
+                        <svg
+                            viewBox="0 0 24 24"
+                            aria-hidden="true">
+                            <path
+                                d="M12 21s7-6.2 7-12a7 7 0 1 0-14 0c0 5.8 7 12 7 12z" />
+
+                            <circle
+                                cx="12"
+                                cy="9"
+                                r="2.5" />
+                        </svg>
+                    </span>
+
+                    <span class="nav-text">
+                        Sucursales
+                    </span>
+
+                </NavLink>
+
+            </Authorized>
+
+        </AuthorizeView>
+
+
+        <!-- ==================================================
+             SEGURIDAD
+             ================================================== -->
+
+        @if (TieneAlgunoDeLosPermisos(
+            PermisosSistema.UsuariosConsultar,
+            PermisosSistema.UsuariosGestionar,
+            PermisosSistema.RolesGestionar,
+            PermisosSistema.PermisosGestionar))
+        {
+            <div class="nav-section">
+                <span class="nav-section-title">
+                    SEGURIDAD
+                </span>
+            </div>
+        }
+
+
+        <AuthorizeView
+            Policy="Permiso:USUARIOS_CONSULTAR">
+
+            <Authorized>
+
+                <NavLink
+                    class="nav-item"
+                    href="usuarios">
+
+                    <span class="nav-icon">
+                        <svg
+                            viewBox="0 0 24 24"
+                            aria-hidden="true">
+                            <circle
+                                cx="12"
+                                cy="8"
+                                r="3" />
+
+                            <path
+                                d="M5 20c.8-3.5 3.1-5 7-5s6.2 1.5 7 5" />
+                        </svg>
+                    </span>
+
+                    <span class="nav-text">
+                        Usuarios
+                    </span>
+
+                </NavLink>
+
+            </Authorized>
+
+        </AuthorizeView>
+
+
+        <AuthorizeView
+            Policy="Permiso:ROLES_GESTIONAR">
+
+            <Authorized>
+
+                <NavLink
+                    class="nav-item"
+                    href="roles">
+
+                    <span class="nav-icon">
+                        <svg
+                            viewBox="0 0 24 24"
+                            aria-hidden="true">
+                            <path
+                                d="M12 3l7 3v5c0 4.5-2.8 7.5-7 10-4.2-2.5-7-5.5-7-10V6l7-3z" />
+
+                            <path
+                                d="M9 12l2 2 4-4" />
+                        </svg>
+                    </span>
+
+                    <span class="nav-text">
+                        Roles y permisos
+                    </span>
+
+                </NavLink>
+
+            </Authorized>
+
+        </AuthorizeView>
 
     </nav>
 
 
-    <!-- ESTADO -->
+    <!-- ======================================================
+         FOOTER
+         ====================================================== -->
 
     <div class="sidebar-footer">
 
@@ -157,8 +379,15 @@
             <span class="status-indicator"></span>
 
             <div class="status-info">
-                <span class="status-title">Sistema activo</span>
-                <span class="status-subtitle">Licorería Sistema</span>
+
+                <span class="status-title">
+                    Sistema activo
+                </span>
+
+                <span class="status-subtitle">
+                    Licorería Sistema
+                </span>
+
             </div>
 
         </div>
@@ -166,3 +395,79 @@
     </div>
 
 </div>
+
+
+@code {
+
+    private ClaimsPrincipal? _usuarioActual;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var estado =
+            await AuthenticationStateProvider
+                .GetAuthenticationStateAsync();
+
+        _usuarioActual =
+            estado.User;
+    }
+
+    private bool TieneAlgunoDeLosPermisos(
+        params string[] permisos)
+    {
+        if (_usuarioActual?.Identity?.IsAuthenticated != true)
+        {
+            return false;
+        }
+
+        return permisos.Any(TienePermiso);
+    }
+
+    private bool TienePermiso(string permiso)
+    {
+        return _usuarioActual?
+            .Claims
+            .Any(c =>
+                string.Equals(
+                    c.Type,
+                    "Permiso",
+                    StringComparison.OrdinalIgnoreCase)
+                &&
+                string.Equals(
+                    c.Value,
+                    permiso,
+                    StringComparison.OrdinalIgnoreCase))
+            == true;
+    }
+
+    private static string ObtenerIniciales(
+        string? nombreCompleto,
+        string? nombreUsuario)
+    {
+        if (string.IsNullOrWhiteSpace(
+                nombreCompleto))
+        {
+            return string.IsNullOrWhiteSpace(
+                nombreUsuario)
+                ? "?"
+                : nombreUsuario[..1]
+                    .ToUpperInvariant();
+        }
+
+        var partes =
+            nombreCompleto
+                .Split(
+                    ' ',
+                    StringSplitOptions.RemoveEmptyEntries);
+
+        if (partes.Length == 1)
+        {
+            return partes[0][..1]
+                .ToUpperInvariant();
+        }
+
+        return (
+            partes[0][..1] +
+            partes[^1][..1]
+        ).ToUpperInvariant();
+    }
+}

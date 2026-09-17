@@ -1,5 +1,7 @@
 ﻿@page "/inventario"
 
+
+@attribute [Authorize(Policy = "Permiso:INVENTARIO_CONSULTAR")]
 @attribute [Authorize]
 
 @rendermode InteractiveServer
@@ -801,3 +803,4 @@
         MensajeExitoso = false;
     }
 }
+

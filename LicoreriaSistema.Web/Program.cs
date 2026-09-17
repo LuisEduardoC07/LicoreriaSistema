@@ -1,10 +1,12 @@
-﻿using LicoreriaSistema.Datos.Context;
+﻿using LibreriaSistema.Aplicacion.Interfaces;
+using LicoreriaSistema.Datos.Context;
 using LicoreriaSistema.Datos.Data;
 using LicoreriaSistema.Datos.Extensions;
 using LicoreriaSistema.Web.Components;
 using LicoreriaSistema.Web.Endpoints;
 using LicoreriaSistema.Web.Seguridad;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components.Authorization;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -16,7 +18,8 @@ builder.Services.AddDatos(builder.Configuration);
 // ============================================================
 
 builder.Services
-    .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddAuthentication(
+        CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
     {
         options.LoginPath = "/login";
@@ -24,13 +27,39 @@ builder.Services
         options.Cookie.Name = "LicoreriaSistema.Auth";
 
         // Duracion maxima de la sesion.
-        options.ExpireTimeSpan = TimeSpan.FromMinutes(5);
+        options.ExpireTimeSpan =
+            TimeSpan.FromMinutes(5);
 
-        // No renovar automaticamente por actividad.
+        // La renovacion de la sesion se controla
+        // explicitamente mediante /api/auth/actividad.
         options.SlidingExpiration = false;
     });
 
 builder.Services.AddAuthorization();
+
+// ============================================================
+// AUTORIZACION BASADA EN PERMISOS
+// ============================================================
+//
+// Las politicas se generan dinamicamente usando:
+//
+//     Permiso:PRODUCTOS_CONSULTAR
+//     Permiso:USUARIOS_GESTIONAR
+//     Permiso:ROLES_GESTIONAR
+//
+// etc.
+//
+// No hace falta registrar manualmente cada una de las 29
+// politicas.
+// ============================================================
+
+builder.Services.AddSingleton<
+    IAuthorizationPolicyProvider,
+    PermisoPolicyProvider>();
+
+builder.Services.AddSingleton<
+    IAuthorizationHandler,
+    PermisoAuthorizationHandler>();
 
 builder.Services.AddCascadingAuthenticationState();
 
@@ -39,11 +68,35 @@ builder.Services.AddScoped<
     RevalidatingAuthenticationStateProvider>();
 
 // ============================================================
+// CONTEXTO DE SEGURIDAD DEL USUARIO ACTUAL
+// ============================================================
+//
+// Permite que los servicios de Aplicacion conozcan:
+//
+// - Usuario autenticado.
+// - Rol.
+// - Permisos.
+// - Alcance global.
+// - Sucursales autorizadas.
+//
+// La seguridad de negocio no depende solamente de ocultar
+// botones en la interfaz.
+// ============================================================
+
+builder.Services.AddScoped<
+    IContextoUsuarioActual,
+    ContextoUsuarioActual>();
+
+// ============================================================
 // RAZOR COMPONENTS
 // ============================================================
 
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+
+// ============================================================
+// CONSTRUCCION
+// ============================================================
 
 var app = builder.Build();
 
@@ -79,7 +132,10 @@ app.UseStatusCodePagesWithReExecute(
 
 app.UseHttpsRedirection();
 
-// Recuperar la identidad desde la cookie.
+// ============================================================
+// AUTENTICACION
+// ============================================================
+
 app.UseAuthentication();
 
 // ============================================================
@@ -93,15 +149,13 @@ app.UseAuthentication();
 //   /login
 //   /api/auth/login
 //
-// El resto de las solicitudes HTML se redirige al login.
-//
-// Los recursos estaticos y solicitudes internas no HTML no se
-// bloquean en esta barrera.
+// El resto de solicitudes HTML se redirige al login.
 // ============================================================
 
 app.Use(async (context, next) =>
 {
-    var path = context.Request.Path;
+    var path =
+        context.Request.Path;
 
     var esLogin =
         path.Equals(
@@ -153,7 +207,15 @@ app.Use(async (context, next) =>
     await next();
 });
 
+// ============================================================
+// AUTORIZACION
+// ============================================================
+
 app.UseAuthorization();
+
+// ============================================================
+// ANTIFORGERY
+// ============================================================
 
 app.UseAntiforgery();
 

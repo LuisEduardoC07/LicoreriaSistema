@@ -1,0 +1,234 @@
+﻿@using LicoreriaSistema.Dominio.Entidades
+@using LibreriaSistema.Aplicacion.Modelos
+
+<div class="usuario-form">
+
+    <div class="form-grid">
+
+        <div class="field">
+            <label>Nombre</label>
+
+            <input
+                @bind="Modelo.Nombre"
+                maxlength="100" />
+        </div>
+
+        <div class="field">
+            <label>Apellido</label>
+
+            <input
+                @bind="Modelo.Apellido"
+                maxlength="100" />
+        </div>
+
+        <div class="field">
+            <label>Nombre de usuario</label>
+
+            <input
+                @bind="Modelo.NombreUsuario"
+                maxlength="50"
+                autocomplete="username" />
+        </div>
+
+        <div class="field">
+            <label>Correo</label>
+
+            <input
+                type="email"
+                @bind="Modelo.Correo"
+                maxlength="150"
+                autocomplete="email" />
+        </div>
+
+        <div class="field">
+            <label>Rol</label>
+
+            <select @bind="Modelo.RolId">
+                <option value="0">
+                    Selecciona un rol
+                </option>
+
+                @foreach (var rol in Roles.Where(r => r.Activo))
+                {
+                    <option value="@rol.Id">
+                        @rol.Nombre
+                    </option>
+                }
+            </select>
+        </div>
+
+        <div class="field">
+            <label>
+                @(EsNuevo
+                    ? "Contraseña"
+                    : "Nueva contraseña")
+            </label>
+
+            <input
+                type="password"
+                @bind="Modelo.Password"
+                autocomplete="new-password"
+                placeholder="@(EsNuevo
+                    ? "Mínimo 8 caracteres"
+                    : "Dejar vacío para mantenerla")" />
+        </div>
+
+        <div class="field checkbox-field">
+
+            <label class="switch-label">
+                <input
+                    type="checkbox"
+                    @bind="Modelo.Activo" />
+
+                <span>
+                    Usuario activo
+                </span>
+            </label>
+
+            <small>
+                Los usuarios inactivos no pueden iniciar sesión.
+            </small>
+        </div>
+
+        <div class="field checkbox-field">
+
+            <label class="switch-label">
+                <input
+                    type="checkbox"
+                    @bind="Modelo.AlcanceGlobal" />
+
+                <span>
+                    Alcance global
+                </span>
+            </label>
+
+            <small>
+                Puede operar en todas las sucursales.
+            </small>
+        </div>
+
+    </div>
+
+    @if (!Modelo.AlcanceGlobal)
+    {
+        <div class="sucursales-section">
+
+            <div class="sucursales-header">
+                <div>
+                    <h3>Sucursales asignadas</h3>
+
+                    <p>
+                        Selecciona al menos una sucursal.
+                    </p>
+                </div>
+
+                <span>
+                    @SucursalesSeleccionadas.Count seleccionada(s)
+                </span>
+            </div>
+
+            <div class="sucursales-grid">
+
+                @foreach (var sucursal in Sucursales)
+                {
+                    <label class="sucursal-check">
+
+                        <input
+                            type="checkbox"
+                            checked="@SucursalesSeleccionadas.Contains(
+                                sucursal.Id)"
+                            @onchange="e => CambiarSucursal(
+                                sucursal.Id,
+                                e.Value is bool value && value)" />
+
+                        <span>
+                            <strong>@sucursal.Nombre</strong>
+
+                            <small>
+                                @sucursal.Direccion
+                            </small>
+                        </span>
+
+                    </label>
+                }
+
+            </div>
+
+        </div>
+    }
+    else
+    {
+        <div class="global-info">
+            🌐 Este usuario tendrá alcance global y no necesita
+            sucursales asignadas individualmente.
+        </div>
+    }
+
+    <div class="actions-row">
+
+        <button
+            type="button"
+            class="primary-button"
+            @onclick="Guardar">
+            @(EsNuevo
+                ? "Crear usuario"
+                : "Guardar cambios")
+        </button>
+
+        <button
+            type="button"
+            class="secondary-button"
+            @onclick="Cancelar">
+            Cancelar
+        </button>
+
+    </div>
+
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public UsuarioEditorDto Modelo { get; set; } = null!;
+
+    [Parameter]
+    public IReadOnlyList<Rol> Roles { get; set; } =
+        Array.Empty<Rol>();
+
+    [Parameter]
+    public IReadOnlyList<Sucursal> Sucursales { get; set; } =
+        Array.Empty<Sucursal>();
+
+    [Parameter]
+    public bool EsNuevo { get; set; }
+
+    [Parameter]
+    public EventCallback OnGuardar { get; set; }
+
+    [Parameter]
+    public EventCallback OnCancelar { get; set; }
+
+    private HashSet<int> SucursalesSeleccionadas =>
+        Modelo.SucursalIds;
+
+    private void CambiarSucursal(
+        int sucursalId,
+        bool seleccionado)
+    {
+        if (seleccionado)
+        {
+            Modelo.SucursalIds.Add(
+                sucursalId);
+        }
+        else
+        {
+            Modelo.SucursalIds.Remove(
+                sucursalId);
+        }
+    }
+
+    private Task Guardar() =>
+        OnGuardar.InvokeAsync();
+
+    private Task Cancelar() =>
+        OnCancelar.InvokeAsync();
+}

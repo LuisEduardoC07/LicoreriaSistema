@@ -1,5 +1,7 @@
 ﻿@page "/productos"
 
+
+@attribute [Authorize(Policy = "Permiso:PRODUCTOS_CONSULTAR")]
 @attribute [Authorize]
 
 @rendermode InteractiveServer
@@ -773,3 +775,4 @@
         MensajeExitoso = false;
     }
 }
+

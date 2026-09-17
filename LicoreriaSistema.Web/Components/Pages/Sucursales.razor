@@ -1,13 +1,16 @@
 ﻿@page "/sucursales"
 
+@attribute [Authorize(Policy = "Permiso:SUCURSALES_CONSULTAR")]
 @attribute [Authorize]
 
 @rendermode InteractiveServer
 
 @using LicoreriaSistema.Dominio.Entidades
+@using LibreriaSistema.Aplicacion.Interfaces
 @using LibreriaSistema.Aplicacion.Servicios
 
 @inject SucursalService SucursalService
+@inject IContextoUsuarioActual ContextoUsuarioActual
 
 <PageTitle>Sucursales</PageTitle>
 
@@ -23,12 +26,15 @@
             </p>
         </div>
 
-        <button type="button"
-                class="btn btn-primary"
-                @onclick="PrepararNuevaSucursal">
-            <span class="button-icon">+</span>
-            Nueva sucursal
-        </button>
+        @if (EsSuperAdministrador)
+        {
+            <button type="button"
+                    class="btn btn-primary"
+                    @onclick="PrepararNuevaSucursal">
+                <span class="button-icon">+</span>
+                Nueva sucursal
+            </button>
+        }
 
     </div>
 
@@ -88,7 +94,7 @@
 
         </div>
     }
-    else if (MostrarFormulario)
+    else if (MostrarFormulario && EsSuperAdministrador)
     {
         <div class="form-card">
 
@@ -230,7 +236,7 @@
                     : "No encontramos sucursales que coincidan con la búsqueda.")
             </p>
 
-            @if (string.IsNullOrWhiteSpace(TextoBusqueda))
+            @if (EsSuperAdministrador && string.IsNullOrWhiteSpace(TextoBusqueda))
             {
                 <button type="button"
                         class="btn btn-primary"
@@ -270,32 +276,35 @@
                             }
                         </div>
 
-                        <div class="branch-actions">
+                        @if (EsSuperAdministrador)
+                        {
+                            <div class="branch-actions">
 
-                            <button type="button"
-                                    class="btn-action edit"
-                                    @onclick="() => PrepararEdicion(sucursal)">
-                                Editar
-                            </button>
-
-                            @if (sucursal.Activa)
-                            {
                                 <button type="button"
-                                        class="btn-action disable"
-                                        @onclick="() => CambiarEstado(sucursal, false)">
-                                    Desactivar
+                                        class="btn-action edit"
+                                        @onclick="() => PrepararEdicion(sucursal)">
+                                    Editar
                                 </button>
-                            }
-                            else
-                            {
-                                <button type="button"
-                                        class="btn-action enable"
-                                        @onclick="() => CambiarEstado(sucursal, true)">
-                                    Activar
-                                </button>
-                            }
 
-                        </div>
+                                @if (sucursal.Activa)
+                                {
+                                    <button type="button"
+                                            class="btn-action disable"
+                                            @onclick="() => CambiarEstado(sucursal, false)">
+                                        Desactivar
+                                    </button>
+                                }
+                                else
+                                {
+                                    <button type="button"
+                                            class="btn-action enable"
+                                            @onclick="() => CambiarEstado(sucursal, true)">
+                                        Activar
+                                    </button>
+                                }
+
+                            </div>
+                        }
 
                     </div>
 
@@ -400,6 +409,12 @@
 
     private bool MensajeExitoso { get; set; }
 
+    private bool EsSuperAdministrador =>
+        string.Equals(
+            ContextoUsuarioActual.Rol?.Trim(),
+            "SuperAdministrador",
+            StringComparison.OrdinalIgnoreCase);
+
     private List<Sucursal> SucursalesFiltradas
     {
         get
@@ -470,6 +485,11 @@
 
     private void PrepararNuevaSucursal()
     {
+        if (!EsSuperAdministrador)
+        {
+            return;
+        }
+
         Editando = false;
         SucursalEditandoId = 0;
 
@@ -487,6 +507,11 @@
     private void PrepararEdicion(
         Sucursal sucursal)
     {
+        if (!EsSuperAdministrador)
+        {
+            return;
+        }
+
         Editando = true;
 
         SucursalEditandoId =
@@ -531,6 +556,15 @@
 
     private async Task GuardarSucursal()
     {
+        if (!EsSuperAdministrador)
+        {
+            MostrarMensaje(
+                false,
+                "Solo el SuperAdministrador puede gestionar sucursales.");
+
+            return;
+        }
+
         if (string.IsNullOrWhiteSpace(
                 NombreFormulario))
         {
@@ -595,6 +629,15 @@
         Sucursal sucursal,
         bool nuevoEstado)
     {
+        if (!EsSuperAdministrador)
+        {
+            MostrarMensaje(
+                false,
+                "Solo el SuperAdministrador puede activar o desactivar sucursales.");
+
+            return;
+        }
+
         var resultado =
             await SucursalService.CambiarEstadoAsync(
                 sucursal.Id,

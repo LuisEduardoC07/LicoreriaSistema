@@ -1,4 +1,11 @@
-﻿@inherits LayoutComponentBase
+﻿@using System.Security.Claims
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.JSInterop
+
+@implements IAsyncDisposable
+@inherits LayoutComponentBase
+
+@inject IJSRuntime JS
 
 <div class="page">
 
@@ -9,16 +16,53 @@
     <main>
 
         <header class="top-row">
+
             <div class="top-brand">
-                <span class="brand-mark">LS</span>
-                <span class="brand-name">LICORERÍA SISTEMA</span>
+
+                <span class="brand-mark">
+                    LS
+                </span>
+
+                <span class="brand-name">
+                    LICORERÍA SISTEMA
+                </span>
+
             </div>
 
             <div class="top-actions">
-                <span class="system-status">
-                    Sistema
-                </span>
+
+                <AuthorizeView>
+
+                    <Authorized>
+
+                        <form
+                            method="post"
+                            action="/api/auth/logout"
+                            class="logout-form">
+
+                            <button
+                                type="submit"
+                                class="system-status logout-button"
+                                title="Cerrar sesión">
+
+                                <span class="logout-icon">
+                                    ↪
+                                </span>
+
+                                <span>
+                                    SALIR
+                                </span>
+
+                            </button>
+
+                        </form>
+
+                    </Authorized>
+
+                </AuthorizeView>
+
             </div>
+
         </header>
 
         <article class="content">
@@ -29,8 +73,89 @@
 
 </div>
 
+<div
+    id="session-timeout-warning"
+    class="session-timeout-warning"
+    hidden>
+
+    <div class="session-timeout-card">
+
+        <div class="session-timeout-icon">
+            ⏱
+        </div>
+
+        <div class="session-timeout-content">
+
+            <strong>
+                Sesión a punto de terminar
+            </strong>
+
+            <span>
+                Tu sesión se cerrará por inactividad en
+                <strong id="session-timeout-seconds">
+                    30
+                </strong>
+                segundos.
+            </span>
+
+        </div>
+
+        <button
+            type="button"
+            id="session-continue-button"
+            class="session-continue-button">
+            Continuar sesión
+        </button>
+
+    </div>
+
+</div>
+
 <div id="blazor-error-ui" data-nosnippet>
     Ha ocurrido un error inesperado.
     <a href="." class="reload">Recargar</a>
     <span class="dismiss">✕</span>
 </div>
+
+@code {
+    private IJSObjectReference? _sessionModule;
+
+    protected override async Task OnAfterRenderAsync(
+        bool firstRender)
+    {
+        if (!firstRender)
+        {
+            return;
+        }
+
+        _sessionModule =
+            await JS.InvokeAsync<IJSObjectReference>(
+                "import",
+                "./js/sesion-inactividad.js");
+
+        await _sessionModule.InvokeVoidAsync(
+            "iniciar",
+            5 * 60 * 1000,
+            30 * 1000,
+            60 * 1000);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_sessionModule is null)
+        {
+            return;
+        }
+
+        try
+        {
+            await _sessionModule.InvokeVoidAsync(
+                "detener");
+
+            await _sessionModule.DisposeAsync();
+        }
+        catch (JSDisconnectedException)
+        {
+        }
+    }
+}

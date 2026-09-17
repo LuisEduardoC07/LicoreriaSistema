@@ -13,6 +13,10 @@ public interface IInventarioRepository
         int sucursalId,
         CancellationToken cancellationToken = default);
 
+    Task<InventarioSucursal?> ObtenerPorIdAsync(
+        int inventarioId,
+        CancellationToken cancellationToken = default);
+
     Task<IReadOnlyList<Producto>> ObtenerProductosActivosAsync(
         CancellationToken cancellationToken = default);
 

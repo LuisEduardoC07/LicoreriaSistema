@@ -1,0 +1,664 @@
+﻿@page "/usuarios"
+
+@attribute [Authorize(Policy = "Permiso:USUARIOS_CONSULTAR")]
+@using LicoreriaSistema.Dominio.Entidades
+@using LibreriaSistema.Aplicacion.Modelos
+@using LibreriaSistema.Aplicacion.Servicios
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@rendermode InteractiveServer
+@inject UsuarioService UsuarioService
+
+<PageTitle>Usuarios</PageTitle>
+
+<div class="usuarios-page">
+
+    <div class="page-header">
+        <div>
+            <span class="eyebrow">SEGURIDAD</span>
+            <h1>Usuarios</h1>
+            <p>
+                Administra cuentas, roles, alcance y sucursales.
+            </p>
+        </div>
+
+        <button
+            type="button"
+            class="primary-button"
+            @onclick="NuevoUsuario">
+            + Nuevo usuario
+        </button>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(Mensaje))
+    {
+        <div class="alert @(OperacionExitosa
+            ? "alert-success"
+            : "alert-error")">
+            @Mensaje
+        </div>
+    }
+
+    <div class="toolbar">
+
+        <div class="search-box">
+            <label>Buscar</label>
+
+            <input
+                type="search"
+                placeholder="Nombre, usuario o correo..."
+                @bind="Busqueda"
+                @bind:event="oninput" />
+        </div>
+
+        <div class="filter-box">
+            <label>Estado</label>
+
+            <select @bind="FiltroEstado">
+                <option value="Todos">Todos</option>
+                <option value="Activos">Activos</option>
+                <option value="Inactivos">Inactivos</option>
+            </select>
+        </div>
+
+    </div>
+
+    <div class="content-grid">
+
+        <section class="usuarios-panel">
+
+            <div class="panel-header">
+                <div>
+                    <h2>Usuarios registrados</h2>
+                    <span>
+                        @UsuariosFiltrados.Count usuario(s)
+                    </span>
+                </div>
+            </div>
+
+            @if (Cargando)
+            {
+                <div class="empty-state">
+                    Cargando usuarios...
+                </div>
+            }
+            else if (UsuariosFiltrados.Count == 0)
+            {
+                <div class="empty-state">
+                    No hay usuarios que coincidan con los filtros.
+                </div>
+            }
+            else
+            {
+                <div class="usuarios-list">
+
+                    @foreach (var usuario in UsuariosFiltrados)
+                    {
+                        <button
+                            type="button"
+                            class="usuario-card @(UsuarioSeleccionado?.Id == usuario.Id
+                                ? "selected"
+                                : "")"
+                            @onclick="() => SeleccionarUsuario(usuario)">
+
+                            <div class="usuario-card-top">
+
+                                <div class="avatar">
+                                    @Iniciales(usuario)
+                                </div>
+
+                                <span class="status-badge @(usuario.Activo
+                                    ? "active"
+                                    : "inactive")">
+                                    @(usuario.Activo
+                                        ? "Activo"
+                                        : "Inactivo")
+                                </span>
+
+                            </div>
+
+                            <h3>
+                                @usuario.Nombre @usuario.Apellido
+                            </h3>
+
+                            <p class="username">
+                                @@ @usuario.NombreUsuario
+                            </p>
+
+                            <p class="role">
+                                @(usuario.Rol?.Nombre ?? "Sin rol")
+                            </p>
+
+                            <div class="usuario-meta">
+                                <span>
+                                    @(usuario.AlcanceGlobal
+                                        ? "🌐 Global"
+                                        : $"🏪 {usuario.UsuarioSucursales.Count} sucursal(es)")
+                                </span>
+                            </div>
+
+                        </button>
+                    }
+
+                </div>
+            }
+
+        </section>
+
+        <section class="editor-panel">
+
+            @if (ModoNuevo)
+            {
+                <div class="panel-header">
+                    <div>
+                        <span class="eyebrow">NUEVO</span>
+                        <h2>Crear usuario</h2>
+                    </div>
+                </div>
+
+                <UsuarioFormulario
+                    Modelo="Modelo"
+                    Roles="Roles"
+                    Sucursales="Sucursales"
+                    EsNuevo="true"
+                    OnGuardar="GuardarUsuario"
+                    OnCancelar="CancelarNuevoUsuario" />
+            }
+            else if (UsuarioSeleccionado is null)
+            {
+                <div class="editor-empty">
+
+                    <div class="editor-empty-icon">
+                        👤
+                    </div>
+
+                    <h2>Selecciona un usuario</h2>
+
+                    <p>
+                        Selecciona un usuario para consultar o editar
+                        sus datos de acceso y seguridad.
+                    </p>
+
+                </div>
+            }
+            else
+            {
+                <div class="panel-header">
+
+                    <div>
+                        <span class="eyebrow">
+                            USUARIO SELECCIONADO
+                        </span>
+
+                        <h2>
+                            @UsuarioSeleccionado.Nombre
+                            @UsuarioSeleccionado.Apellido
+                        </h2>
+                    </div>
+
+                    @if (!ModoEdicion)
+                    {
+                        <button
+                            type="button"
+                            class="secondary-button"
+                            @onclick="EditarUsuario">
+                            Editar
+                        </button>
+                    }
+
+                </div>
+
+                @if (ModoEdicion)
+                {
+                    <UsuarioFormulario
+                        Modelo="Modelo"
+                        Roles="Roles"
+                        Sucursales="Sucursales"
+                        EsNuevo="false"
+                        OnGuardar="GuardarUsuario"
+                        OnCancelar="CancelarEdicion" />
+                }
+                else
+                {
+                    <div class="summary-grid">
+
+                        <div class="summary-item">
+                            <span>Usuario</span>
+
+                            <strong>
+                                @@ @UsuarioSeleccionado.NombreUsuario
+                            </strong>
+                        </div>
+
+                        <div class="summary-item">
+                            <span>Rol</span>
+
+                            <strong>
+                                @UsuarioSeleccionado.Rol?.Nombre
+                            </strong>
+                        </div>
+
+                        <div class="summary-item">
+                            <span>Correo</span>
+
+                            <strong>
+                                @(string.IsNullOrWhiteSpace(
+                                    UsuarioSeleccionado.Correo)
+                                    ? "No registrado"
+                                    : UsuarioSeleccionado.Correo)
+                            </strong>
+                        </div>
+
+                        <div class="summary-item">
+                            <span>Alcance</span>
+
+                            <strong>
+                                @(UsuarioSeleccionado.AlcanceGlobal
+                                    ? "Global"
+                                    : "Sucursales asignadas")
+                            </strong>
+                        </div>
+
+                    </div>
+
+                    <div class="sucursales-summary">
+
+                        <h3>Sucursales</h3>
+
+                        @if (UsuarioSeleccionado.AlcanceGlobal)
+                        {
+                            <div class="global-badge">
+                                🌐 Acceso global a las sucursales.
+                            </div>
+                        }
+                        else if (UsuarioSeleccionado.UsuarioSucursales.Count == 0)
+                        {
+                            <div class="empty-small">
+                                No tiene sucursales asignadas.
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="chips">
+
+                                @foreach (
+                                    var asignacion
+                                    in UsuarioSeleccionado.UsuarioSucursales)
+                                {
+                                    <span class="chip">
+                                        @asignacion.Sucursal.Nombre
+                                    </span>
+                                }
+
+                            </div>
+                        }
+
+                    </div>
+
+                    <div class="actions-row">
+
+                        @if (UsuarioSeleccionado.Id != 1)
+                        {
+                            <button
+                                type="button"
+                                class="danger-button"
+                                @onclick="CambiarEstadoUsuario">
+                                @(UsuarioSeleccionado.Activo
+                                    ? "Desactivar usuario"
+                                    : "Activar usuario")
+                            </button>
+                        }
+
+                    </div>
+                }
+
+            }
+
+        </section>
+
+    </div>
+
+</div>
+
+@code {
+    private List<Usuario> UsuariosRegistrados { get; set; } = new();
+
+    private List<Rol> Roles { get; set; } = new();
+
+    private List<Sucursal> Sucursales { get; set; } = new();
+
+    private Usuario? UsuarioSeleccionado { get; set; }
+
+    private UsuarioEditorDto Modelo { get; set; } =
+        new();
+
+    private bool Cargando { get; set; } = true;
+
+    private bool ModoNuevo { get; set; }
+
+    private bool ModoEdicion { get; set; }
+
+    private string Busqueda { get; set; } = string.Empty;
+
+    private string FiltroEstado { get; set; } = "Todos";
+
+    private string Mensaje { get; set; } = string.Empty;
+
+    private bool OperacionExitosa { get; set; }
+
+    private IReadOnlyList<Usuario> UsuariosFiltrados =>
+        UsuariosRegistrados
+            .Where(CoincideBusqueda)
+            .Where(CoincideEstado)
+            .OrderBy(u => u.Nombre)
+            .ThenBy(u => u.Apellido)
+            .ToList();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarDatos();
+    }
+
+    private async Task CargarDatos()
+    {
+        Cargando = true;
+
+        // DbContext es scoped y no admite operaciones concurrentes.
+        // Por eso estas consultas se ejecutan secuencialmente.
+        UsuariosRegistrados = (
+            await UsuarioService.ObtenerTodosAsync()
+        ).ToList();
+
+        Roles = (
+            await UsuarioService.ObtenerRolesAsync()
+        ).ToList();
+
+        Sucursales = (
+            await UsuarioService.ObtenerSucursalesAsync()
+        ).ToList();
+
+        Cargando = false;
+
+        if (UsuarioSeleccionado is null &&
+            UsuariosRegistrados.Count > 0)
+        {
+            SeleccionarUsuario(
+                UsuariosRegistrados.First());
+        }
+    }
+
+    private bool CoincideBusqueda(
+        Usuario usuario)
+    {
+        if (string.IsNullOrWhiteSpace(Busqueda))
+        {
+            return true;
+        }
+
+        var texto = Busqueda.Trim();
+
+        return usuario.Nombre.Contains(
+                   texto,
+                   StringComparison.OrdinalIgnoreCase)
+            || usuario.Apellido.Contains(
+                   texto,
+                   StringComparison.OrdinalIgnoreCase)
+            || usuario.NombreUsuario.Contains(
+                   texto,
+                   StringComparison.OrdinalIgnoreCase)
+            || (usuario.Correo?.Contains(
+                    texto,
+                    StringComparison.OrdinalIgnoreCase)
+                ?? false);
+    }
+
+    private bool CoincideEstado(
+        Usuario usuario)
+    {
+        return FiltroEstado switch
+        {
+            "Activos" => usuario.Activo,
+            "Inactivos" => !usuario.Activo,
+            _ => true
+        };
+    }
+
+    private void SeleccionarUsuario(
+        Usuario usuario)
+    {
+        UsuarioSeleccionado = usuario;
+
+        Modelo = CrearModelo(
+            usuario);
+
+        ModoNuevo = false;
+        ModoEdicion = false;
+
+        LimpiarMensaje();
+    }
+
+    private void NuevoUsuario()
+    {
+        UsuarioSeleccionado = null;
+
+        ModoNuevo = true;
+        ModoEdicion = false;
+
+        Modelo = new UsuarioEditorDto
+        {
+            Activo = true,
+            AlcanceGlobal = false,
+            RolId = Roles
+                .Where(r => r.Activo)
+                .OrderBy(r => r.Id)
+                .Select(r => r.Id)
+                .FirstOrDefault()
+        };
+
+        LimpiarMensaje();
+    }
+
+    private void EditarUsuario()
+    {
+        if (UsuarioSeleccionado is null)
+        {
+            return;
+        }
+
+        Modelo = CrearModelo(
+            UsuarioSeleccionado);
+
+        Modelo.Password = string.Empty;
+
+        ModoEdicion = true;
+        ModoNuevo = false;
+
+        LimpiarMensaje();
+    }
+
+    private async Task GuardarUsuario()
+    {
+        ResultadoOperacion resultado;
+
+        if (ModoNuevo)
+        {
+            resultado =
+                await UsuarioService.CrearAsync(
+                    Modelo);
+        }
+        else
+        {
+            if (UsuarioSeleccionado is null)
+            {
+                return;
+            }
+
+            Modelo.Id = UsuarioSeleccionado.Id;
+
+            resultado =
+                await UsuarioService.ActualizarAsync(
+                    Modelo);
+        }
+
+        MostrarResultado(resultado);
+
+        if (!resultado.Exitoso)
+        {
+            return;
+        }
+
+        var idSeleccionado = Modelo.Id;
+
+        ModoNuevo = false;
+        ModoEdicion = false;
+
+        await RecargarDatos();
+
+        if (idSeleccionado > 0)
+        {
+            var usuario =
+                UsuariosRegistrados.FirstOrDefault(
+                    u => u.Id == idSeleccionado);
+
+            if (usuario is not null)
+            {
+                SeleccionarUsuario(
+                    usuario);
+            }
+        }
+        else
+        {
+            var nuevo =
+                UsuariosRegistrados
+                    .OrderByDescending(u => u.Id)
+                    .FirstOrDefault();
+
+            if (nuevo is not null)
+            {
+                SeleccionarUsuario(
+                    nuevo);
+            }
+        }
+    }
+
+    private void CancelarNuevoUsuario()
+    {
+        ModoNuevo = false;
+
+        if (UsuariosRegistrados.Count > 0)
+        {
+            SeleccionarUsuario(
+                UsuariosRegistrados.First());
+        }
+    }
+
+    private void CancelarEdicion()
+    {
+        ModoEdicion = false;
+
+        if (UsuarioSeleccionado is not null)
+        {
+            Modelo = CrearModelo(
+                UsuarioSeleccionado);
+        }
+    }
+
+    private async Task CambiarEstadoUsuario()
+    {
+        if (UsuarioSeleccionado is null)
+        {
+            return;
+        }
+
+        var resultado =
+            await UsuarioService.CambiarEstadoAsync(
+                UsuarioSeleccionado.Id,
+                !UsuarioSeleccionado.Activo);
+
+        MostrarResultado(resultado);
+
+        if (!resultado.Exitoso)
+        {
+            return;
+        }
+
+        var idUsuario =
+            UsuarioSeleccionado.Id;
+
+        await RecargarDatos();
+
+        var usuario =
+            UsuariosRegistrados.FirstOrDefault(
+                u => u.Id == idUsuario);
+
+        if (usuario is not null)
+        {
+            SeleccionarUsuario(
+                usuario);
+        }
+    }
+
+    private async Task RecargarDatos()
+    {
+        UsuariosRegistrados = (
+            await UsuarioService.ObtenerTodosAsync()
+        ).ToList();
+
+        Roles = (
+            await UsuarioService.ObtenerRolesAsync()
+        ).ToList();
+
+        Sucursales = (
+            await UsuarioService.ObtenerSucursalesAsync()
+        ).ToList();
+    }
+
+    private static UsuarioEditorDto CrearModelo(
+        Usuario usuario)
+    {
+        return new UsuarioEditorDto
+        {
+            Id = usuario.Id,
+            Nombre = usuario.Nombre,
+            Apellido = usuario.Apellido,
+            NombreUsuario = usuario.NombreUsuario,
+            Correo = usuario.Correo ?? string.Empty,
+            RolId = usuario.RolId,
+            Activo = usuario.Activo,
+            AlcanceGlobal = usuario.AlcanceGlobal,
+            SucursalIds = usuario.UsuarioSucursales
+                .Select(us => us.SucursalId)
+                .ToHashSet()
+        };
+    }
+
+    private static string Iniciales(
+        Usuario usuario)
+    {
+        var primera =
+            string.IsNullOrWhiteSpace(usuario.Nombre)
+                ? "?"
+                : usuario.Nombre[..1];
+
+        var segunda =
+            string.IsNullOrWhiteSpace(usuario.Apellido)
+                ? string.Empty
+                : usuario.Apellido[..1];
+
+        return $"{primera}{segunda}"
+            .ToUpperInvariant();
+    }
+
+    private void MostrarResultado(
+        ResultadoOperacion resultado)
+    {
+        Mensaje = resultado.Mensaje;
+        OperacionExitosa = resultado.Exitoso;
+    }
+
+    private void LimpiarMensaje()
+    {
+        Mensaje = string.Empty;
+        OperacionExitosa = false;
+    }
+}
+

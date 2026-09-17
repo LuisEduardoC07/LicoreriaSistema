@@ -1,5 +1,4 @@
-﻿using LicoreriaSistema.Datos.Context;
-using LicoreriaSistema.Dominio.Entidades;
+﻿using LicoreriaSistema.Dominio.Entidades;
 using Microsoft.EntityFrameworkCore;
 
 namespace LicoreriaSistema.Datos.Data;
@@ -174,7 +173,7 @@ public static class SeedData
                 Activo = true
             },
 
-            // Ventas
+            // Ventas / POS
             new Permiso
             {
                 Id = 14,
@@ -192,7 +191,7 @@ public static class SeedData
                 Activo = true
             },
 
-            // Clientes
+            // Clientes / POS
             new Permiso
             {
                 Id = 16,
@@ -210,7 +209,7 @@ public static class SeedData
                 Activo = true
             },
 
-            // Caja
+            // Caja / POS
             new Permiso
             {
                 Id = 18,
@@ -324,19 +323,28 @@ public static class SeedData
         modelBuilder.Entity<Permiso>().HasData(permisos);
 
         // =========================================================
-        // PERMISOS DEL SUPERADMINISTRADOR
+        // SUPERADMINISTRADOR
         // =========================================================
 
-        var todosLosPermisos = permisos.Select(p => new RolPermiso
-        {
-            RolId = superAdministradorId,
-            PermisoId = p.Id
-        });
+        var todosLosPermisos = permisos.Select(
+            p => new RolPermiso
+            {
+                RolId = superAdministradorId,
+                PermisoId = p.Id
+            });
 
-        modelBuilder.Entity<RolPermiso>().HasData(todosLosPermisos);
+        modelBuilder.Entity<RolPermiso>().HasData(
+            todosLosPermisos);
 
         // =========================================================
-        // PERMISOS DEL ADMINISTRADOR
+        // ADMINISTRADOR
+        // =========================================================
+        //
+        // Puede gestionar usuarios dentro de las reglas del sistema.
+        // No recibe permisos para administrar roles ni permisos.
+        //
+        // La protección específica para impedir que gestione al
+        // SuperAdministrador se implementará además en UsuarioService.
         // =========================================================
 
         var permisosAdministrador = new[]
@@ -353,87 +361,126 @@ public static class SeedData
         };
 
         modelBuilder.Entity<RolPermiso>().HasData(
-            permisosAdministrador.Select(id => new RolPermiso
-            {
-                RolId = administradorId,
-                PermisoId = id
-            })
+            permisosAdministrador.Select(
+                id => new RolPermiso
+                {
+                    RolId = administradorId,
+                    PermisoId = id
+                })
         );
 
         // =========================================================
-        // PERMISOS DEL ENCARGADO DE SUCURSAL
+        // ENCARGADO DE SUCURSAL
+        // =========================================================
+        //
+        // Acceso:
+        //   - Inicio
+        //   - Productos
+        //   - Categorías
+        //   - Sucursales (solo consulta)
+        //   - Punto de ventas
+        //
+        // No tiene:
+        //   - Inventario
+        //   - Usuarios
+        //   - Roles
+        //   - Reportes
+        //   - Gestión de sucursales
+        //
+        // El acceso real a la información queda además limitado
+        // por las sucursales asignadas al usuario.
         // =========================================================
 
         var permisosEncargado = new[]
         {
-            1, 2, 3, 4,
-            11,
-            13,
-            15,
-            17,
-            20,
-            22,
-            24,
-            29
+            1,  // PRODUCTOS_CONSULTAR
+            3,  // VENTAS_CONSULTAR
+            4,  // CLIENTES_CONSULTAR
+            6,  // CATEGORIAS_GESTIONAR
+            14, // VENTAS_CREAR
+            16, // CLIENTES_CREAR
+            17, // CLIENTES_EDITAR
+            18, // CAJA_OPERAR
+            19, // CAJA_CIERRE
+            22  // SUCURSALES_CONSULTAR
         };
 
         modelBuilder.Entity<RolPermiso>().HasData(
-            permisosEncargado.Select(id => new RolPermiso
-            {
-                RolId = encargadoSucursalId,
-                PermisoId = id
-            })
+            permisosEncargado.Select(
+                id => new RolPermiso
+                {
+                    RolId = encargadoSucursalId,
+                    PermisoId = id
+                })
         );
 
         // =========================================================
-        // PERMISOS DEL VENDEDOR / CAJERO
+        // VENDEDOR / CAJERO
+        // =========================================================
+        //
+        // Acceso:
+        //   - Inicio
+        //   - Productos (solo consulta)
+        //   - Sucursales (solo consulta)
+        //   - Punto de ventas
+        //
+        // No tiene gestión de productos ni de sucursales.
         // =========================================================
 
         var permisosCajero = new[]
         {
-            1,
-            3,
-            4,
-            14,
-            16,
-            17,
-            18,
-            19
+            1,  // PRODUCTOS_CONSULTAR
+            3,  // VENTAS_CONSULTAR
+            4,  // CLIENTES_CONSULTAR
+            14, // VENTAS_CREAR
+            16, // CLIENTES_CREAR
+            17, // CLIENTES_EDITAR
+            18, // CAJA_OPERAR
+            19, // CAJA_CIERRE
+            22  // SUCURSALES_CONSULTAR
         };
 
         modelBuilder.Entity<RolPermiso>().HasData(
-            permisosCajero.Select(id => new RolPermiso
-            {
-                RolId = vendedorCajeroId,
-                PermisoId = id
-            })
+            permisosCajero.Select(
+                id => new RolPermiso
+                {
+                    RolId = vendedorCajeroId,
+                    PermisoId = id
+                })
         );
 
         // =========================================================
-        // PERMISOS DE ALMACÉN / INVENTARIO
+        // ALMACÉN / INVENTARIO
+        // =========================================================
+        //
+        // Acceso:
+        //   - Inicio
+        //   - Productos (solo consulta)
+        //   - Categorías
+        //   - Sucursales (solo consulta)
+        //
+        // No tiene:
+        //   - Inventario
+        //   - Usuarios
+        //   - Roles
+        //   - POS
+        //   - Gestión de sucursales
         // =========================================================
 
         var permisosAlmacen = new[]
         {
-            1,
-            2,
-            3,
-            7,
-            8,
-            9,
-            10,
-            12,
-            13,
-            22,
-            24
+            1, // PRODUCTOS_CONSULTAR
+            6, // CATEGORIAS_GESTIONAR
+            22 // SUCURSALES_CONSULTAR
         };
 
         modelBuilder.Entity<RolPermiso>().HasData(
-            permisosAlmacen.Select(id => new RolPermiso
-            {
-                RolId = almacenInventarioId,
-                PermisoId = id
-            })
+            permisosAlmacen.Select(
+                id => new RolPermiso
+                {
+                    RolId = almacenInventarioId,
+                    PermisoId = id
+                })
         );
     }
 }

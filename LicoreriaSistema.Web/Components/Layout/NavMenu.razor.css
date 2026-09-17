@@ -1,4 +1,4 @@
-/* =========================================================
+﻿/* =========================================================
    CONTENEDOR PRINCIPAL
    ========================================================= */
 
@@ -86,6 +86,81 @@
 
 
 /* =========================================================
+   USUARIO ACTUAL
+   ========================================================= */
+
+.sidebar-user {
+    min-height: 68px;
+
+    display: flex;
+    align-items: center;
+
+    gap: 0.65rem;
+
+    padding: 0.75rem 1.1rem;
+
+    box-sizing: border-box;
+
+    background: #161616;
+
+    border-bottom: 1px solid #292929;
+}
+
+.sidebar-user-avatar {
+    width: 34px;
+    height: 34px;
+
+    flex: 0 0 34px;
+
+    display: grid;
+    place-items: center;
+
+    border-radius: 9px;
+
+    background: #f5c400;
+    color: #111111;
+
+    font-size: 0.7rem;
+    font-weight: 900;
+}
+
+.sidebar-user-info {
+    display: flex;
+    flex-direction: column;
+
+    min-width: 0;
+
+    gap: 0.16rem;
+}
+
+.sidebar-user-info strong {
+    color: #eeeeee;
+
+    font-size: 0.76rem;
+    font-weight: 750;
+
+    line-height: 1.15;
+
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.sidebar-user-info span {
+    color: #8d8d8d;
+
+    font-size: 0.64rem;
+    font-weight: 600;
+
+    line-height: 1.15;
+
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+
+/* =========================================================
    NAVEGACIÓN
    ========================================================= */
 
@@ -100,6 +175,8 @@
 
     overflow-y: auto;
     overflow-x: hidden;
+
+    background: #111111;
 }
 
 
@@ -132,9 +209,7 @@
 
 
 /* =========================================================
-   ITEMS DEL MENÚ
-   IMPORTANTE:
-   ::deep permite que el CSS aislado llegue al NavLink
+   ITEMS
    ========================================================= */
 
 .sidebar-nav ::deep .nav-item {
@@ -179,9 +254,51 @@
         transform 0.18s ease;
 }
 
+.sidebar-nav ::deep .nav-item:hover {
+    background: #1d1d1d !important;
+
+    color: #ffffff !important;
+
+    text-decoration: none !important;
+
+    transform: translateX(2px);
+}
+
+.sidebar-nav ::deep .nav-item:hover .nav-icon {
+    color: #f5c400;
+
+    transform: scale(1.03);
+}
+
+.sidebar-nav ::deep .nav-item.active {
+    background: #1d1d1d !important;
+
+    color: #ffffff !important;
+
+    font-weight: 700;
+
+    text-decoration: none !important;
+}
+
+.sidebar-nav ::deep .nav-item.active::before {
+    content: "";
+
+    position: absolute;
+
+    left: 0;
+    top: 8px;
+    bottom: 8px;
+
+    width: 3px;
+
+    border-radius: 0 3px 3px 0;
+
+    background: #f5c400;
+}
+
 
 /* =========================================================
-   ICONO
+   ICONOS
    ========================================================= */
 
 .sidebar-nav ::deep .nav-icon {
@@ -204,6 +321,10 @@
     transition:
         color 0.18s ease,
         transform 0.18s ease;
+}
+
+.sidebar-nav ::deep .nav-item.active .nav-icon {
+    color: #f5c400;
 }
 
 .sidebar-nav ::deep .nav-icon svg {
@@ -249,83 +370,19 @@
 
 
 /* =========================================================
-   HOVER
-   ========================================================= */
-
-.sidebar-nav ::deep .nav-item:hover {
-    background: #1d1d1d !important;
-
-    color: #ffffff !important;
-
-    text-decoration: none !important;
-
-    transform: translateX(2px);
-}
-
-.sidebar-nav ::deep .nav-item:hover .nav-icon {
-    color: #f5c400;
-
-    transform: scale(1.03);
-}
-
-.sidebar-nav ::deep .nav-item:hover .nav-text {
-    color: #ffffff !important;
-
-    text-decoration: none !important;
-}
-
-
-/* =========================================================
-   ITEM ACTIVO
-   ========================================================= */
-
-.sidebar-nav ::deep .nav-item.active {
-    background: #1d1d1d !important;
-
-    color: #ffffff !important;
-
-    font-weight: 700;
-
-    text-decoration: none !important;
-}
-
-.sidebar-nav ::deep .nav-item.active::before {
-    content: "";
-
-    position: absolute;
-
-    left: 0;
-    top: 8px;
-    bottom: 8px;
-
-    width: 3px;
-
-    border-radius: 0 3px 3px 0;
-
-    background: #f5c400;
-}
-
-.sidebar-nav ::deep .nav-item.active .nav-icon {
-    color: #f5c400;
-}
-
-.sidebar-nav ::deep .nav-item.active .nav-text {
-    color: #ffffff !important;
-
-    text-decoration: none !important;
-}
-
-
-/* =========================================================
    FOOTER
    ========================================================= */
 
 .sidebar-footer {
     width: 100%;
 
+    flex: 0 0 auto;
+
     padding: 0 1.1rem 1.15rem;
 
     box-sizing: border-box;
+
+    background: #111111;
 }
 
 .footer-status {
@@ -395,7 +452,7 @@
 }
 
 .sidebar-nav::-webkit-scrollbar-track {
-    background: transparent;
+    background: #111111;
 }
 
 .sidebar-nav::-webkit-scrollbar-thumb {
@@ -413,12 +470,25 @@
    RESPONSIVE
    ========================================================= */
 
+@media (max-width: 900px) {
+
+    .sidebar-user {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+
+    .sidebar-nav {
+        padding-left: 0.65rem;
+        padding-right: 0.65rem;
+    }
+}
+
+
 @media (max-width: 640px) {
 
     .sidebar-content {
-        height: auto;
-
-        min-height: auto;
+        height: 100vh;
+        min-height: 100vh;
     }
 
     .sidebar-brand {
@@ -428,15 +498,31 @@
         padding: 0 1rem;
     }
 
-    .sidebar-nav {
-        padding: 0.75rem;
+    .brand-name {
+        font-size: 0.88rem;
     }
 
-    .nav-section {
-        padding-top: 0.75rem;
+    .brand-type {
+        font-size: 0.64rem;
+    }
+
+    .sidebar-user {
+        min-height: 62px;
+
+        padding-top: 0.6rem;
+        padding-bottom: 0.6rem;
+    }
+
+    .sidebar-nav {
+        padding-top: 0.7rem;
+        padding-bottom: 0.7rem;
     }
 
     .sidebar-footer {
-        padding: 0 1rem 1rem;
+        padding-bottom: 0.8rem;
+    }
+
+    .footer-status {
+        min-height: 50px;
     }
 }

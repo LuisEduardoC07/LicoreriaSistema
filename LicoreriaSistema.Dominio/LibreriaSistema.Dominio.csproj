@@ -4,6 +4,25 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+
+    <EnableDefaultItems>false</EnableDefaultItems>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <EnableDefaultEmbeddedResourceItems>false</EnableDefaultEmbeddedResourceItems>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="Class1.cs" />
+    <Compile Include="Entidades\Categoria.cs" />
+    <Compile Include="Entidades\InventarioSucursal.cs" />
+    <Compile Include="Entidades\Permiso.cs" />
+    <Compile Include="Entidades\Producto.cs" />
+    <Compile Include="Entidades\ClasificacionFiscal.cs" />
+    <Compile Include="Entidades\ReglaImpuesto.cs" />
+    <Compile Include="Entidades\Rol.cs" />
+    <Compile Include="Entidades\RolPermiso.cs" />
+    <Compile Include="Entidades\Sucursal.cs" />
+    <Compile Include="Entidades\Usuario.cs" />
+    <Compile Include="Entidades\UsuarioSucursal.cs" />
+  </ItemGroup>
 
 </Project>

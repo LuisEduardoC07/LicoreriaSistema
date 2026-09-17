@@ -1,4 +1,4 @@
-namespace LicoreriaSistema.Dominio.Entidades;
+﻿namespace LicoreriaSistema.Dominio.Entidades;
 
 public class Producto
 {
@@ -19,6 +19,9 @@ public class Producto
     public Categoria Categoria { get; set; } = null!;
 
     public bool Activo { get; set; } = true;
+    public int? ClasificacionFiscalId { get; set; }
+
+    public ClasificacionFiscal? ClasificacionFiscal { get; set; }
 
     public ICollection<InventarioSucursal> Inventarios { get; set; }
         = new List<InventarioSucursal>();

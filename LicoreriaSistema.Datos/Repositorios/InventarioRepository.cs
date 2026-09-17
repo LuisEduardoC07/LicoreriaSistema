@@ -43,6 +43,25 @@ public class InventarioRepository : IInventarioRepository
                 cancellationToken);
     }
 
+
+    public async Task<InventarioSucursal?> ObtenerPorIdAsync(
+        int inventarioId,
+        CancellationToken cancellationToken = default)
+    {
+        if (inventarioId <= 0)
+        {
+            return null;
+        }
+
+        return await _context.InventariosSucursal
+            .AsNoTracking()
+            .Include(i => i.Producto)
+                .ThenInclude(p => p.Categoria)
+            .Include(i => i.Sucursal)
+            .FirstOrDefaultAsync(
+                i => i.Id == inventarioId,
+                cancellationToken);
+    }
     public async Task<IReadOnlyList<Producto>> ObtenerProductosActivosAsync(
         CancellationToken cancellationToken = default)
     {
@@ -166,3 +185,4 @@ public class InventarioRepository : IInventarioRepository
             cancellationToken);
     }
 }
+

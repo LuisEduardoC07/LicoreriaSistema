@@ -1,4 +1,4 @@
-using LibreriaSistema.Aplicacion.Interfaces;
+﻿using LibreriaSistema.Aplicacion.Interfaces;
 using LibreriaSistema.Aplicacion.Modelos;
 using LicoreriaSistema.Dominio.Entidades;
 using Microsoft.AspNetCore.Identity;
@@ -51,25 +51,40 @@ public class AutenticacionService : IAutenticacionService
                 "El usuario está inactivo.");
         }
 
-        var resultadoPassword = _passwordHasher.VerifyHashedPassword(
-            usuario,
-            usuario.PasswordHash,
-            password);
+        if (usuario.Rol is null ||
+            !usuario.Rol.Activo)
+        {
+            return ResultadoAutenticacion.Fallido(
+                "El rol asignado al usuario está inactivo.");
+        }
 
-        if (resultadoPassword == PasswordVerificationResult.Failed)
+        var resultadoPassword =
+            _passwordHasher.VerifyHashedPassword(
+                usuario,
+                usuario.PasswordHash,
+                password);
+
+        if (resultadoPassword ==
+            PasswordVerificationResult.Failed)
         {
             return ResultadoAutenticacion.Fallido(
                 "El usuario o la contraseña son incorrectos.");
         }
 
         var permisos = usuario.Rol.RolPermisos
-            .Where(rp => rp.Permiso.Activo)
+            .Where(rp =>
+                rp.Permiso is not null &&
+                rp.Permiso.Activo)
             .Select(rp => rp.Permiso.Codigo)
-            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .Where(codigo =>
+                !string.IsNullOrWhiteSpace(codigo))
+            .Distinct(
+                StringComparer.OrdinalIgnoreCase)
             .ToArray();
 
         var sucursalIds = usuario.UsuarioSucursales
             .Select(us => us.SucursalId)
+            .Where(id => id > 0)
             .Distinct()
             .ToArray();
 
@@ -77,7 +92,8 @@ public class AutenticacionService : IAutenticacionService
         {
             Exitoso = true,
             UsuarioId = usuario.Id,
-            NombreCompleto = $"{usuario.Nombre} {usuario.Apellido}".Trim(),
+            NombreCompleto =
+                $"{usuario.Nombre} {usuario.Apellido}".Trim(),
             NombreUsuario = usuario.NombreUsuario,
             Rol = usuario.Rol.Nombre,
             AlcanceGlobal = usuario.AlcanceGlobal,

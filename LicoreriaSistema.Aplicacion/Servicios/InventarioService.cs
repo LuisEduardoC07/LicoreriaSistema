@@ -1,4 +1,5 @@
 ﻿using LibreriaSistema.Aplicacion.Interfaces;
+using LibreriaSistema.Aplicacion.Seguridad;
 using LicoreriaSistema.Dominio.Entidades;
 
 namespace LibreriaSistema.Aplicacion.Servicios;
@@ -6,34 +7,67 @@ namespace LibreriaSistema.Aplicacion.Servicios;
 public class InventarioService
 {
     private readonly IInventarioRepository _inventarioRepository;
+    private readonly IContextoUsuarioActual _contextoUsuarioActual;
 
     public InventarioService(
-        IInventarioRepository inventarioRepository)
+        IInventarioRepository inventarioRepository,
+        IContextoUsuarioActual contextoUsuarioActual)
     {
         _inventarioRepository = inventarioRepository;
+        _contextoUsuarioActual = contextoUsuarioActual;
     }
 
     public async Task<IReadOnlyList<Sucursal>> ObtenerSucursalesActivasAsync(
         CancellationToken cancellationToken = default)
     {
-        return await _inventarioRepository
-            .ObtenerSucursalesActivasAsync(cancellationToken);
+        ExigirPermiso(
+            PermisosSistema.InventarioConsultar);
+
+        var sucursales =
+            await _inventarioRepository
+                .ObtenerSucursalesActivasAsync(
+                    cancellationToken);
+
+        if (_contextoUsuarioActual.AlcanceGlobal)
+        {
+            return sucursales;
+        }
+
+        return sucursales
+            .Where(s =>
+                _contextoUsuarioActual
+                    .PuedeAccederASucursal(s.Id))
+            .ToList();
     }
 
     public async Task<IReadOnlyList<Producto>> ObtenerProductosActivosAsync(
         CancellationToken cancellationToken = default)
     {
+        ExigirPermiso(
+            PermisosSistema.InventarioConsultar);
+
         return await _inventarioRepository
-            .ObtenerProductosActivosAsync(cancellationToken);
+            .ObtenerProductosActivosAsync(
+                cancellationToken);
     }
 
     public async Task<IReadOnlyList<InventarioSucursal>> ObtenerPorSucursalAsync(
         int sucursalId,
         CancellationToken cancellationToken = default)
     {
+        ExigirPermiso(
+            PermisosSistema.InventarioConsultar);
+
         if (sucursalId <= 0)
         {
             return Array.Empty<InventarioSucursal>();
+        }
+
+        if (!_contextoUsuarioActual
+                .PuedeAccederASucursal(sucursalId))
+        {
+            throw new UnauthorizedAccessException(
+                "No tienes acceso al inventario de esta sucursal.");
         }
 
         return await _inventarioRepository
@@ -50,6 +84,14 @@ public class InventarioService
         decimal stockMaximo,
         CancellationToken cancellationToken = default)
     {
+        if (!TienePermiso(
+                PermisosSistema.InventarioEntrada))
+        {
+            return (
+                false,
+                "No tienes permisos para registrar entradas de inventario.");
+        }
+
         if (productoId <= 0)
         {
             return (
@@ -62,6 +104,14 @@ public class InventarioService
             return (
                 false,
                 "Debe seleccionar una sucursal.");
+        }
+
+        if (!_contextoUsuarioActual
+                .PuedeAccederASucursal(sucursalId))
+        {
+            return (
+                false,
+                "No tienes acceso para operar el inventario de esta sucursal.");
         }
 
         if (cantidad <= 0)
@@ -122,15 +172,28 @@ public class InventarioService
                 "La entrada fue registrada correctamente.");
         }
 
-        if (stockMinimo != inventario.StockMinimo ||
-            stockMaximo != inventario.StockMaximo)
+        var cambioConfiguracion =
+            stockMinimo != inventario.StockMinimo ||
+            stockMaximo != inventario.StockMaximo;
+
+        if (cambioConfiguracion &&
+            !TienePermiso(
+                PermisosSistema.InventarioAjustar))
+        {
+            return (
+                false,
+                "No tienes permisos para modificar el stock mínimo o máximo.");
+        }
+
+        if (cambioConfiguracion)
         {
             var configuracionActualizada =
-                await _inventarioRepository.ActualizarConfiguracionAsync(
-                    inventario.Id,
-                    stockMinimo,
-                    stockMaximo,
-                    cancellationToken);
+                await _inventarioRepository
+                    .ActualizarConfiguracionAsync(
+                        inventario.Id,
+                        stockMinimo,
+                        stockMaximo,
+                        cancellationToken);
 
             if (!configuracionActualizada)
             {
@@ -141,13 +204,14 @@ public class InventarioService
         }
 
         var existenciaAgregada =
-            await _inventarioRepository.AgregarExistenciaAsync(
-                productoId,
-                sucursalId,
-                cantidad,
-                stockMinimo,
-                stockMaximo,
-                cancellationToken);
+            await _inventarioRepository
+                .AgregarExistenciaAsync(
+                    productoId,
+                    sucursalId,
+                    cantidad,
+                    stockMinimo,
+                    stockMaximo,
+                    cancellationToken);
 
         if (!existenciaAgregada)
         {
@@ -167,6 +231,14 @@ public class InventarioService
         decimal stockMaximo,
         CancellationToken cancellationToken = default)
     {
+        if (!TienePermiso(
+                PermisosSistema.InventarioAjustar))
+        {
+            return (
+                false,
+                "No tienes permisos para ajustar la configuración del inventario.");
+        }
+
         if (inventarioId <= 0)
         {
             return (
@@ -196,18 +268,41 @@ public class InventarioService
                 "El stock máximo no puede ser menor que el stock mínimo.");
         }
 
+        var inventario =
+            await _inventarioRepository
+                .ObtenerPorIdAsync(
+                    inventarioId,
+                    cancellationToken);
+
+        if (inventario is null)
+        {
+            return (
+                false,
+                "El registro de inventario no existe.");
+        }
+
+        if (!_contextoUsuarioActual
+                .PuedeAccederASucursal(
+                    inventario.SucursalId))
+        {
+            return (
+                false,
+                "No tienes acceso para modificar el inventario de esta sucursal.");
+        }
+
         var actualizado =
-            await _inventarioRepository.ActualizarConfiguracionAsync(
-                inventarioId,
-                stockMinimo,
-                stockMaximo,
-                cancellationToken);
+            await _inventarioRepository
+                .ActualizarConfiguracionAsync(
+                    inventarioId,
+                    stockMinimo,
+                    stockMaximo,
+                    cancellationToken);
 
         if (!actualizado)
         {
             return (
                 false,
-                "El registro de inventario no existe.");
+                "No fue posible actualizar la configuración del inventario.");
         }
 
         return (
@@ -221,12 +316,28 @@ public class InventarioService
         decimal cantidad,
         CancellationToken cancellationToken = default)
     {
+        if (!TienePermiso(
+                PermisosSistema.InventarioSalida))
+        {
+            return (
+                false,
+                "No tienes permisos para registrar salidas de inventario.");
+        }
+
         if (productoId <= 0 ||
             sucursalId <= 0)
         {
             return (
                 false,
                 "El producto o la sucursal no son válidos.");
+        }
+
+        if (!_contextoUsuarioActual
+                .PuedeAccederASucursal(sucursalId))
+        {
+            return (
+                false,
+                "No tienes acceso para operar el inventario de esta sucursal.");
         }
 
         if (cantidad <= 0)
@@ -237,10 +348,11 @@ public class InventarioService
         }
 
         var inventario =
-            await _inventarioRepository.ObtenerAsync(
-                productoId,
-                sucursalId,
-                cancellationToken);
+            await _inventarioRepository
+                .ObtenerAsync(
+                    productoId,
+                    sucursalId,
+                    cancellationToken);
 
         if (inventario is null)
         {
@@ -257,11 +369,12 @@ public class InventarioService
         }
 
         var descontado =
-            await _inventarioRepository.DescontarExistenciaAsync(
-                productoId,
-                sucursalId,
-                cantidad,
-                cancellationToken);
+            await _inventarioRepository
+                .DescontarExistenciaAsync(
+                    productoId,
+                    sucursalId,
+                    cantidad,
+                    cancellationToken);
 
         if (!descontado)
         {
@@ -273,5 +386,20 @@ public class InventarioService
         return (
             true,
             "La existencia fue descontada correctamente.");
+    }
+
+    private bool TienePermiso(string permiso)
+    {
+        return _contextoUsuarioActual
+            .TienePermiso(permiso);
+    }
+
+    private void ExigirPermiso(string permiso)
+    {
+        if (!TienePermiso(permiso))
+        {
+            throw new UnauthorizedAccessException(
+                "El usuario actual no tiene permisos para realizar esta operación.");
+        }
     }
 }
