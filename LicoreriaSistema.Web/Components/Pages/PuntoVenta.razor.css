@@ -1,0 +1,2546 @@
+﻿.pos-page {
+    box-sizing: border-box;
+    min-height: 100%;
+    padding: 28px;
+    background: #f7f7f4;
+    color: #161616;
+}
+
+.pos-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 24px;
+    margin-bottom: 22px;
+}
+
+.pos-eyebrow,
+.pos-section-label {
+    display: block;
+    font-size: .72rem;
+    font-weight: 800;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+}
+
+.pos-eyebrow,
+.pos-section-label {
+    color: #a07a00;
+}
+
+.pos-eyebrow { margin-bottom: 6px; }
+
+.pos-header h1 {
+    margin: 0;
+    font-size: 2.1rem;
+    font-weight: 900;
+    letter-spacing: -.03em;
+}
+
+.pos-header p {
+    margin: 7px 0 0;
+    color: #6a6a67;
+}
+
+.pos-branch-indicator {
+    min-width: 250px;
+    padding: 14px 16px;
+    border: 1px solid #deded8;
+    border-radius: 14px;
+    background: #fff;
+    box-shadow: 0 6px 20px rgba(0,0,0,.05);
+}
+
+.branch-indicator-label {
+    display: block;
+    margin-bottom: 4px;
+    color: #777773;
+    font-size: .75rem;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+}
+
+.pos-branch-indicator strong {
+    display: block;
+    font-size: 1rem;
+}
+
+.pos-branch-select {
+    width: 100%;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    font-weight: 800;
+}
+
+.pos-alert {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 13px 16px;
+    margin-bottom: 18px;
+    border-radius: 12px;
+    font-weight: 700;
+}
+
+.pos-alert-success {
+    background: #e8f7dc;
+    border: 1px solid #b8d99d;
+}
+
+.pos-alert-error {
+    background: #fff0d4;
+    border: 1px solid #e1bf73;
+}
+
+.pos-alert button {
+    border: 0;
+    background: transparent;
+    font-size: 1.25rem;
+    cursor: pointer;
+}
+
+.pos-loading,
+.pos-search-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    min-height: 180px;
+    border: 1px dashed #d5d5cf;
+    border-radius: 18px;
+    background: #fff;
+}
+
+.pos-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.55fr) minmax(390px, .85fr);
+    gap: 22px;
+    align-items: start;
+}
+
+.pos-products-panel,
+.pos-checkout-panel {
+    min-width: 0;
+}
+
+.pos-products-panel,
+.pos-checkout-panel {
+    display: grid;
+    gap: 18px;
+}
+
+.pos-checkout-panel {
+    position: sticky;
+    top: 12px;
+    max-height: calc(100vh - 24px);
+    overflow-y: auto;
+    scrollbar-width: thin;
+}
+
+.pos-search-card,
+.pos-results-card,
+.pos-cart-card,
+.pos-client-card,
+.pos-summary-card,
+.pos-payment-card {
+    background: #fff;
+    border: 1px solid #deded8;
+    border-radius: 18px;
+    box-shadow: 0 8px 28px rgba(0,0,0,.055);
+}
+
+.pos-search-card,
+.pos-client-card,
+.pos-summary-card,
+.pos-payment-card {
+    padding: 20px;
+}
+
+.pos-search-heading,
+.pos-cart-header,
+.pos-card-heading,
+.pos-results-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 14px;
+}
+
+.pos-search-heading h2,
+.pos-cart-header h2,
+.pos-card-heading h2 {
+    margin: 0;
+    font-size: 1.12rem;
+    font-weight: 850;
+}
+
+.pos-scan-label,
+.pos-required-badge {
+    padding: 7px 10px;
+    border-radius: 999px;
+    background: #fff1b8;
+    color: #111;
+    font-size: .72rem;
+    font-weight: 850;
+    white-space: nowrap;
+}
+
+.pos-search-box {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 16px;
+    padding: 0 16px;
+    min-height: 58px;
+    border: 2px solid #1a1a1a;
+    border-radius: 14px;
+    background: #fffef7;
+}
+
+.pos-search-icon {
+    font-size: 1.35rem;
+    font-weight: 800;
+}
+
+.pos-search-input {
+    width: 100%;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    font-size: 1rem;
+    color: #111;
+}
+
+.pos-search-help {
+    margin-top: 9px;
+    color: #7b7b76;
+    font-size: .78rem;
+}
+
+.pos-results-card,
+.pos-cart-card {
+    overflow: hidden;
+}
+
+.pos-results-header,
+.pos-cart-header {
+    padding: 17px 18px;
+    border-bottom: 1px solid #ebebe6;
+}
+
+.pos-results-header span,
+.pos-cart-count {
+    color: #777773;
+    font-size: .8rem;
+    font-weight: 700;
+}
+
+.pos-results-list,
+.pos-cart-list {
+    display: grid;
+}
+
+.pos-product-result {
+    display: grid;
+    grid-template-columns: 58px minmax(0,1fr) auto auto auto;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
+    padding: 15px 18px;
+    border: 0;
+    border-bottom: 1px solid #eeeeea;
+    background: #fff;
+    text-align: left;
+    cursor: pointer;
+}
+
+.pos-product-result:hover {
+    background: #fff9dc;
+}
+
+.pos-product-result:last-child,
+.pos-cart-item:last-child {
+    border-bottom: 0;
+}
+
+.pos-product-image,
+.pos-cart-image {
+    width: 52px;
+    height: 52px;
+    min-width: 52px;
+    border-radius: 11px;
+    overflow: hidden;
+    display: grid;
+    place-items: center;
+    background: #f4f4ef;
+    border: 1px solid #deded8;
+}
+
+.pos-product-image img,
+.pos-cart-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.pos-product-image span,
+.pos-cart-image span {
+    font-size: 1.55rem;
+    opacity: .75;
+}
+
+.pos-product-main {
+    min-width: 0;
+}
+
+.pos-product-main strong {
+    display: block;
+    font-size: .98rem;
+}
+
+.pos-product-main span,
+.pos-product-stock span {
+    display: block;
+    color: #7d7d78;
+    font-size: .76rem;
+    margin-top: 3px;
+}
+
+.pos-product-stock {
+    text-align: right;
+}
+
+.pos-product-stock strong {
+    display: block;
+    margin-top: 3px;
+}
+
+.pos-product-price {
+    font-weight: 850;
+    white-space: nowrap;
+}
+
+.pos-add-symbol {
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: #111;
+    color: #ffd91a;
+    font-size: 1.35rem;
+    font-weight: 900;
+}
+
+.pos-no-results,
+.pos-cart-empty {
+    padding: 42px 24px;
+    text-align: center;
+    color: #777773;
+}
+
+.pos-no-results h3,
+.pos-cart-empty h3 {
+    margin: 12px 0 6px;
+    color: #222;
+    font-size: 1rem;
+}
+
+.pos-no-results p,
+.pos-cart-empty p {
+    margin: 0 auto;
+    max-width: 430px;
+    font-size: .86rem;
+}
+
+.pos-empty-icon {
+    font-size: 2rem;
+    opacity: .65;
+}
+
+.pos-cart-item {
+    display: grid;
+    grid-template-columns: 58px minmax(0,1fr) auto auto auto;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 18px;
+    border-bottom: 1px solid #eeeeea;
+}
+
+.pos-cart-product {
+    min-width: 0;
+}
+
+.pos-cart-product strong,
+.pos-cart-product span,
+.pos-cart-product small {
+    display: block;
+}
+
+.pos-cart-product strong {
+    font-size: .94rem;
+}
+
+.pos-cart-product span {
+    margin-top: 2px;
+    color: #777773;
+    font-size: .76rem;
+}
+
+.pos-cart-product small {
+    margin-top: 5px;
+    color: #a07a00;
+    font-size: .73rem;
+}
+
+.pos-cart-quantity {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.pos-cart-quantity button {
+    width: 31px;
+    height: 31px;
+    border: 1px solid #cfcfc8;
+    border-radius: 8px;
+    background: #f4f4ef;
+    font-weight: 900;
+    cursor: pointer;
+}
+
+.pos-cart-quantity input {
+    width: 64px;
+    height: 31px;
+    border: 1px solid #cfcfc8;
+    border-radius: 8px;
+    text-align: center;
+    font-weight: 800;
+}
+
+.pos-cart-price {
+    min-width: 115px;
+    text-align: right;
+}
+
+.pos-cart-price span,
+.pos-cart-price strong {
+    display: block;
+}
+
+.pos-cart-price span {
+    color: #777773;
+    font-size: .73rem;
+}
+
+.pos-cart-price strong {
+    margin-top: 3px;
+    font-size: .95rem;
+}
+
+.pos-remove-button {
+    width: 31px;
+    height: 31px;
+    border: 0;
+    border-radius: 8px;
+    background: #161616;
+    color: #ffd91a;
+    font-size: 1.15rem;
+    font-weight: 900;
+    cursor: pointer;
+}
+
+.pos-quote-warning {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    padding: 13px 15px;
+    margin: 14px 18px 18px;
+    border: 1px solid #e1bf73;
+    border-radius: 12px;
+    background: #fff4d7;
+    color: #4c3908;
+}
+
+.pos-quote-warning strong { font-size: .82rem; }
+.pos-quote-warning span { font-size: .77rem; }
+
+.pos-field {
+    margin-top: 17px;
+}
+
+.pos-field label {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 7px;
+    font-size: .8rem;
+    font-weight: 800;
+}
+
+.pos-field label span {
+    color: #898983;
+    font-weight: 600;
+}
+
+.pos-input {
+    width: 100%;
+    min-height: 47px;
+    padding: 0 13px;
+    border: 1px solid #cbcbc4;
+    border-radius: 11px;
+    outline: 0;
+    background: #fff;
+    color: #111;
+    box-sizing: border-box;
+}
+
+.pos-input:focus {
+    border-color: #111;
+    box-shadow: 0 0 0 3px #fff0a8;
+}
+
+.pos-field small {
+    display: block;
+    margin-top: 7px;
+    color: #858580;
+    font-size: .73rem;
+}
+
+.pos-totals {
+    margin-top: 18px;
+}
+
+.pos-totals > div {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 9px 0;
+}
+
+.pos-totals span {
+    color: #696963;
+}
+
+.pos-totals strong {
+    font-weight: 850;
+}
+
+.pos-total-line {
+    margin-top: 8px;
+    padding-top: 15px !important;
+    border-top: 2px solid #161616;
+}
+
+.pos-total-line span,
+.pos-total-line strong {
+    font-size: 1.15rem;
+    color: #111;
+}
+
+.pos-payment-methods {
+    display: grid;
+    grid-template-columns: repeat(3,1fr);
+    gap: 8px;
+    margin-top: 18px;
+}
+
+.pos-payment-option {
+    min-height: 77px;
+    padding: 10px 7px;
+    border: 1px solid #d4d4cd;
+    border-radius: 12px;
+    background: #fff;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.pos-payment-option.selected {
+    border: 2px solid #111;
+    background: #fff1a7;
+}
+
+.payment-icon {
+    display: block;
+    margin-bottom: 5px;
+    font-size: 1.2rem;
+    font-weight: 900;
+}
+
+.pos-cash-input {
+    font-size: 1.1rem;
+    font-weight: 800;
+}
+
+.pos-change-box {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 15px;
+    padding: 14px;
+    border-radius: 12px;
+    background: #111;
+    color: #fff;
+}
+
+.pos-change-box span { color: #d7d7d2; }
+
+.pos-change-box strong {
+    color: #ffd91a;
+    font-size: 1.2rem;
+}
+
+.pos-checkout-button {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    min-height: 68px;
+    padding: 12px 18px;
+    border: 0;
+    border-radius: 15px;
+    background: #111;
+    color: #fff;
+    font-size: .95rem;
+    font-weight: 900;
+    letter-spacing: .03em;
+    box-shadow: 0 10px 25px rgba(0,0,0,.12);
+    cursor: pointer;
+}
+
+.pos-checkout-button strong {
+    color: #ffd91a;
+    font-size: 1.08rem;
+}
+
+.pos-checkout-button:hover:not(:disabled) {
+    transform: translateY(-1px);
+}
+
+.pos-checkout-button:disabled {
+    opacity: .45;
+    cursor: not-allowed;
+}
+
+.pos-last-invoice {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 13px 15px;
+    border-radius: 12px;
+    background: #fff1b8;
+    color: #171717;
+}
+
+.pos-last-invoice span {
+    color: #6c6c67;
+    font-size: .78rem;
+}
+
+.pos-last-invoice strong {
+    font-size: .84rem;
+}
+
+.pos-product-result:focus-visible,
+.pos-payment-option:focus-visible,
+.pos-checkout-button:focus-visible,
+.pos-remove-button:focus-visible {
+    outline: 3px solid #ffd91a;
+    outline-offset: 2px;
+}
+
+@media (max-width:1100px) {
+    .pos-layout { grid-template-columns: 1fr; }
+    .pos-checkout-panel {
+        position: static;
+        max-height: none;
+        overflow: visible;
+        grid-template-columns: repeat(2,minmax(0,1fr));
+    }
+    .pos-checkout-button,
+    .pos-last-invoice { grid-column: 1 / -1; }
+}
+
+@media (max-width:760px) {
+    .pos-page { padding: 18px; }
+    .pos-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .pos-branch-indicator { min-width: 0; }
+
+    .pos-product-result {
+        grid-template-columns: 52px 1fr;
+    }
+    .pos-product-stock,
+    .pos-product-price,
+    .pos-add-symbol {
+        grid-column: 2;
+    }
+
+    .pos-cart-item {
+        grid-template-columns: 52px 1fr;
+    }
+    .pos-cart-quantity,
+    .pos-cart-price,
+    .pos-remove-button {
+        grid-column: 2;
+    }
+    .pos-cart-price { text-align: left; }
+
+    .pos-checkout-panel { grid-template-columns: 1fr; }
+    .pos-payment-methods { grid-template-columns: 1fr; }
+}
+
+/* ==========================================================
+   POS - LAYOUT DE PANTALLA
+   ========================================================== */
+
+.pos-page {
+    height: calc(100dvh - 92px);
+    min-height: 0 !important;
+    box-sizing: border-box;
+    overflow: hidden !important;
+    padding: 18px 24px;
+}
+
+.pos-header {
+    margin-bottom: 14px;
+}
+
+.pos-header h1 {
+    font-size: 1.85rem;
+}
+
+.pos-header p {
+    margin-top: 4px;
+    font-size: .86rem;
+}
+
+.pos-layout {
+    height: calc(100% - 72px);
+    min-height: 0;
+    align-items: stretch;
+}
+
+.pos-products-panel {
+    min-height: 0;
+    grid-template-rows: auto minmax(0,1fr);
+}
+
+.pos-results-card {
+    max-height: 235px;
+    overflow-y: auto;
+}
+
+.pos-cart-card {
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.pos-cart-list {
+    min-height: 0;
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: thin;
+}
+
+.pos-checkout-panel {
+    position: static !important;
+    height: 100%;
+    max-height: none !important;
+    min-height: 0;
+    overflow: visible !important;
+    grid-template-rows: auto auto auto auto;
+    align-content: start;
+}
+
+.pos-client-card,
+.pos-summary-card,
+.pos-payment-card {
+    padding: 14px 16px;
+}
+
+.pos-card-heading h2 {
+    font-size: 1rem;
+}
+
+.pos-field {
+    margin-top: 10px;
+}
+
+.pos-input {
+    min-height: 41px;
+}
+
+.pos-field small {
+    margin-top: 4px;
+    font-size: .68rem;
+}
+
+.pos-totals {
+    margin-top: 8px;
+}
+
+.pos-totals > div {
+    padding: 5px 0;
+}
+
+.pos-total-line {
+    margin-top: 5px;
+    padding-top: 10px !important;
+}
+
+.pos-payment-methods {
+    margin-top: 10px;
+}
+
+.pos-payment-option {
+    min-height: 60px;
+}
+
+.pos-change-box {
+    margin-top: 8px;
+    padding: 10px 12px;
+}
+
+.pos-checkout-button {
+    min-height: 58px;
+}
+
+@media (max-width: 1100px) {
+    .pos-page {
+        height: auto;
+        min-height: 100dvh !important;
+        overflow: visible !important;
+        padding: 18px;
+    }
+
+    .pos-layout {
+        height: auto;
+    }
+
+    .pos-products-panel {
+        grid-template-rows: auto auto minmax(0,1fr);
+    }
+
+    .pos-results-card {
+        max-height: 260px;
+    }
+
+    .pos-cart-list {
+        max-height: 480px;
+        flex: none;
+    }
+
+    .pos-checkout-panel {
+        height: auto;
+    }
+}
+/* ==========================================================
+   PUNTO DE VENTA - DISTRIBUCION PARA PANTALLA NORMAL
+   ========================================================== */
+
+@media (min-width: 1101px) {
+
+    /*
+       La pantalla del POS ocupa el alto disponible.
+       No se permite scroll general de la pagina.
+    */
+    .pos-page {
+        height: calc(100dvh - 155px);
+        min-height: 0 !important;
+        overflow: hidden !important;
+        box-sizing: border-box;
+        padding: 12px 24px 14px;
+    }
+
+    .pos-header {
+        margin-bottom: 10px;
+    }
+
+    .pos-header h1 {
+        margin: 0;
+        font-size: 1.65rem;
+        line-height: 1.05;
+    }
+
+    .pos-header p {
+        margin: 3px 0 0;
+        font-size: .78rem;
+    }
+
+    /*
+       El contenido principal ocupa exactamente
+       el espacio restante.
+    */
+    .pos-layout {
+        height: calc(100% - 62px);
+        min-height: 0;
+        align-items: stretch;
+    }
+
+    /*
+       La izquierda puede crecer, pero el scroll queda
+       solamente en sus listas.
+    */
+    .pos-products-panel {
+        min-height: 0;
+    }
+
+    .pos-cart-card {
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .pos-cart-list {
+        min-height: 0;
+        flex: 1 1 auto;
+        overflow-y: auto;
+        overflow-x: hidden;
+        scrollbar-width: thin;
+    }
+
+    /*
+       PANEL DERECHO
+       Cliente + Resumen comparten fila.
+       Pago ocupa todo el ancho debajo.
+    */
+    .pos-checkout-panel {
+        display: grid !important;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        gap: 10px !important;
+        align-content: start;
+        align-items: start;
+        min-width: 0;
+        min-height: 0;
+
+        position: static !important;
+        height: auto !important;
+        max-height: none !important;
+        overflow: visible !important;
+
+        scrollbar-width: none;
+    }
+
+    .pos-checkout-panel::-webkit-scrollbar {
+        display: none;
+    }
+
+    /*
+       CLIENTE
+    */
+    .pos-client-card {
+        grid-column: 1;
+        min-width: 0;
+        margin: 0 !important;
+        padding: 12px 14px !important;
+    }
+
+    /*
+       RESUMEN
+    */
+    .pos-summary-card {
+        grid-column: 2;
+        min-width: 0;
+        margin: 0 !important;
+        padding: 12px 14px !important;
+    }
+
+    /*
+       PAGO
+    */
+    .pos-payment-card {
+        grid-column: 1 / -1;
+        min-width: 0;
+        margin: 0 !important;
+        padding: 12px 14px !important;
+    }
+
+    /*
+       BOTON COBRAR
+    */
+    .pos-checkout-button {
+        grid-column: 1 / -1;
+        width: 100%;
+        margin: 0 !important;
+    }
+
+    /*
+       ULTIMA FACTURA, si existe
+    */
+    .pos-last-invoice {
+        grid-column: 1 / -1;
+        width: 100%;
+        margin: 0 !important;
+    }
+
+    /*
+       CLIENTE MAS COMPACTO
+    */
+    .pos-client-card .pos-field {
+        margin-top: 7px;
+    }
+
+    .pos-client-card .pos-input {
+        min-height: 38px;
+        height: 38px;
+    }
+
+    .pos-client-card small {
+        font-size: .65rem;
+        line-height: 1.15;
+    }
+
+    /*
+       RESUMEN MAS COMPACTO
+    */
+    .pos-summary-card .pos-totals {
+        margin-top: 5px;
+    }
+
+    .pos-summary-card .pos-totals > div {
+        padding: 3px 0;
+    }
+
+    .pos-summary-card .pos-total-line {
+        margin-top: 3px;
+        padding-top: 7px !important;
+    }
+
+    /*
+       METODOS DE PAGO
+    */
+    .pos-payment-methods {
+        margin-top: 8px;
+    }
+
+    .pos-payment-option {
+        min-height: 52px;
+        padding: 7px !important;
+    }
+
+    .pos-payment-option .payment-icon,
+    .pos-payment-option .payment-icon {
+        margin-bottom: 2px;
+        font-size: 1rem;
+    }
+
+    .pos-payment-card .pos-field {
+        margin-top: 8px;
+    }
+
+    .pos-payment-card .pos-input {
+        min-height: 38px;
+        height: 38px;
+    }
+
+    .pos-change-box {
+        margin-top: 7px;
+        padding: 8px 10px;
+    }
+
+    /*
+       BOTON FINAL
+    */
+    .pos-checkout-button {
+        min-height: 54px;
+        height: 54px;
+    }
+}
+
+/*
+   Pantallas de escritorio con poca altura
+   (1366x768, 1440x768, laptops, etc.)
+*/
+@media (min-width: 1101px) and (max-height: 850px) {
+
+    .pos-page {
+        height: calc(100dvh - 150px);
+        padding-top: 8px;
+        padding-bottom: 8px;
+    }
+
+    .pos-header {
+        margin-bottom: 7px;
+    }
+
+    .pos-header h1 {
+        font-size: 1.5rem;
+    }
+
+    .pos-layout {
+        height: calc(100% - 55px);
+        gap: 12px !important;
+    }
+
+    .pos-client-card,
+    .pos-summary-card,
+    .pos-payment-card {
+        padding: 10px 12px !important;
+    }
+
+    .pos-card-heading {
+        margin-bottom: 4px !important;
+    }
+
+    .pos-card-heading h2 {
+        font-size: .94rem;
+    }
+
+    .pos-field {
+        margin-top: 6px !important;
+    }
+
+    .pos-input {
+        min-height: 35px !important;
+        height: 35px !important;
+    }
+
+    .pos-payment-option {
+        min-height: 47px !important;
+        padding: 5px !important;
+    }
+
+    .pos-change-box {
+        margin-top: 5px;
+        padding: 7px 9px;
+    }
+
+    .pos-checkout-button {
+        min-height: 50px;
+        height: 50px;
+    }
+}
+/* ==========================================================
+   POS - DISTRIBUCIÓN FINAL ESCRITORIO
+   ========================================================== */
+
+@media (min-width: 1101px) {
+
+    html,
+    body {
+        overflow: hidden !important;
+    }
+
+    .pos-page {
+        height: calc(100dvh - 150px) !important;
+        min-height: 0 !important;
+        overflow: hidden !important;
+        box-sizing: border-box;
+        padding: 10px 24px !important;
+    }
+
+    .pos-header {
+        margin-bottom: 8px !important;
+    }
+
+    .pos-header h1 {
+        font-size: 1.55rem !important;
+        line-height: 1.05 !important;
+        margin: 0 !important;
+    }
+
+    .pos-header p {
+        font-size: .75rem !important;
+        margin: 3px 0 0 !important;
+    }
+
+    /*
+       IZQUIERDA
+       - búsqueda
+       - resultados con scroll
+       - carrito con scroll
+    */
+    .pos-layout {
+        height: calc(100% - 58px) !important;
+        min-height: 0 !important;
+        display: grid !important;
+        grid-template-columns: minmax(0, 1.55fr) minmax(470px, .85fr) !important;
+        gap: 14px !important;
+        overflow: hidden !important;
+    }
+
+    .pos-products-panel {
+        min-height: 0 !important;
+        height: 100% !important;
+        display: grid !important;
+        grid-template-rows: auto minmax(90px, 190px) minmax(0, 1fr) !important;
+        gap: 10px !important;
+        overflow: hidden !important;
+    }
+
+    .pos-search-card {
+        min-height: 0 !important;
+    }
+
+    /*
+       RESULTADOS:
+       este es uno de los únicos lugares con scroll.
+    */
+    .pos-results-card {
+        min-height: 0 !important;
+        max-height: none !important;
+        height: 100% !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        scrollbar-width: thin;
+    }
+
+    /*
+       CARRITO:
+       segundo lugar con scroll.
+    */
+    .pos-cart-card {
+        min-height: 0 !important;
+        height: 100% !important;
+        display: flex !important;
+        flex-direction: column !important;
+        overflow: hidden !important;
+    }
+
+    .pos-cart-list {
+        min-height: 0 !important;
+        flex: 1 1 auto !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        scrollbar-width: thin;
+    }
+
+    /*
+       DERECHA:
+       absolutamente ningún scroll.
+       Todo debe quedar visible.
+    */
+    .pos-checkout-panel {
+        height: 100% !important;
+        min-height: 0 !important;
+        display: grid !important;
+
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+        grid-template-rows: auto minmax(0, auto) minmax(0, auto) auto !important;
+
+        gap: 10px !important;
+        align-content: start !important;
+        align-items: start !important;
+
+        position: static !important;
+        max-height: none !important;
+        overflow: visible !important;
+    }
+
+    /*
+       SUCURSAL
+    */
+    .pos-branch-indicator {
+        grid-column: 1 / -1 !important;
+        width: 100% !important;
+        margin: 0 !important;
+    }
+
+    /*
+       CLIENTE
+    */
+    .pos-client-card {
+        grid-column: 1 !important;
+        grid-row: 2 !important;
+
+        min-width: 0 !important;
+        margin: 0 !important;
+        padding: 11px 13px !important;
+    }
+
+    /*
+       RESUMEN
+    */
+    .pos-summary-card {
+        grid-column: 2 !important;
+        grid-row: 2 !important;
+
+        min-width: 0 !important;
+        margin: 0 !important;
+        padding: 11px 13px !important;
+    }
+
+    /*
+       PAGO
+    */
+    .pos-payment-card {
+        grid-column: 1 / -1 !important;
+        grid-row: 3 !important;
+
+        min-width: 0 !important;
+        margin: 0 !important;
+        padding: 10px 13px !important;
+    }
+
+    /*
+       ÚLTIMA FACTURA
+    */
+    .pos-last-invoice {
+        grid-column: 1 / -1 !important;
+        width: 100% !important;
+        margin: 0 !important;
+    }
+
+    /*
+       BOTÓN FINAL
+    */
+    .pos-checkout-button {
+        grid-column: 1 / -1 !important;
+        grid-row: 4 !important;
+
+        width: 100% !important;
+        min-height: 50px !important;
+        height: 50px !important;
+        margin: 0 !important;
+    }
+
+    /*
+       CLIENTE MÁS COMPACTO
+    */
+    .pos-client-card .pos-card-heading,
+    .pos-summary-card .pos-card-heading,
+    .pos-payment-card .pos-card-heading {
+        margin-bottom: 4px !important;
+    }
+
+    .pos-client-card .pos-card-heading h2,
+    .pos-summary-card .pos-card-heading h2,
+    .pos-payment-card .pos-card-heading h2 {
+        font-size: .92rem !important;
+        line-height: 1.1 !important;
+    }
+
+    .pos-client-card .pos-section-label,
+    .pos-summary-card .pos-section-label,
+    .pos-payment-card .pos-section-label {
+        font-size: .62rem !important;
+    }
+
+    .pos-client-card .pos-field {
+        margin-top: 6px !important;
+    }
+
+    .pos-client-card .pos-input {
+        height: 36px !important;
+        min-height: 36px !important;
+        font-size: .82rem !important;
+    }
+
+    .pos-client-card small {
+        font-size: .62rem !important;
+        line-height: 1.1 !important;
+    }
+
+    /*
+       RESUMEN COMPACTO
+    */
+    .pos-summary-card .pos-totals {
+        margin-top: 4px !important;
+    }
+
+    .pos-summary-card .pos-totals > div {
+        padding: 3px 0 !important;
+    }
+
+    .pos-summary-card .pos-total-line {
+        margin-top: 3px !important;
+        padding-top: 7px !important;
+    }
+
+    .pos-summary-card .pos-total-line strong {
+        font-size: 1.05rem !important;
+    }
+
+    /*
+       PAGO COMPACTO
+    */
+    .pos-payment-methods {
+        margin-top: 6px !important;
+        gap: 6px !important;
+    }
+
+    .pos-payment-option {
+        min-height: 52px !important;
+        height: 52px !important;
+        padding: 5px !important;
+    }
+
+    .pos-payment-option strong {
+        font-size: .75rem !important;
+    }
+
+    .pos-payment-option span {
+        font-size: .85rem !important;
+    }
+
+    .pos-payment-card .pos-field {
+        margin-top: 6px !important;
+    }
+
+    .pos-payment-card .pos-input {
+        height: 36px !important;
+        min-height: 36px !important;
+    }
+
+    .pos-change-box {
+        margin-top: 6px !important;
+        padding: 7px 9px !important;
+    }
+
+    /*
+       PANTALLAS DE POCA ALTURA
+       como 1366x768 / 1440x768.
+    */
+    @media (max-height: 850px) {
+
+        .pos-page {
+            padding-top: 7px !important;
+            padding-bottom: 7px !important;
+        }
+
+        .pos-layout {
+            gap: 10px !important;
+            grid-template-columns:
+                minmax(0, 1.5fr)
+                minmax(455px, .8fr) !important;
+        }
+
+        .pos-products-panel {
+            grid-template-rows:
+                auto
+                minmax(65px, 145px)
+                minmax(0, 1fr) !important;
+            gap: 8px !important;
+        }
+
+        .pos-client-card,
+        .pos-summary-card,
+        .pos-payment-card {
+            padding: 8px 10px !important;
+        }
+
+        .pos-client-card .pos-field {
+            margin-top: 4px !important;
+        }
+
+        .pos-client-card .pos-input {
+            height: 32px !important;
+            min-height: 32px !important;
+        }
+
+        .pos-payment-option {
+            min-height: 45px !important;
+            height: 45px !important;
+        }
+
+        .pos-checkout-button {
+            min-height: 46px !important;
+            height: 46px !important;
+        }
+    }
+}
+/* ==========================================================
+   POS - DISTRIBUCION FINAL
+   ========================================================== */
+
+@media (min-width: 1101px) {
+
+    html,
+    body {
+        overflow: hidden !important;
+    }
+
+    .pos-page {
+        height: calc(100dvh - 155px) !important;
+        min-height: 0 !important;
+        overflow: hidden !important;
+        box-sizing: border-box;
+        padding: 10px 22px !important;
+    }
+
+    .pos-header {
+        margin-bottom: 9px !important;
+    }
+
+    .pos-header h1 {
+        font-size: 1.55rem !important;
+        line-height: 1.05 !important;
+        margin: 0 !important;
+    }
+
+    .pos-header p {
+        margin: 3px 0 0 !important;
+        font-size: .76rem !important;
+    }
+
+    /*
+       IZQUIERDA + DERECHA
+    */
+    .pos-layout {
+        height: calc(100% - 57px) !important;
+        min-height: 0 !important;
+        display: grid !important;
+        grid-template-columns:
+            minmax(0, 1fr)
+            minmax(500px, 520px) !important;
+        gap: 14px !important;
+        align-items: stretch !important;
+        overflow: hidden !important;
+    }
+
+    /*
+       IZQUIERDA
+    */
+    .pos-products-panel {
+        height: 100% !important;
+        min-height: 0 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 10px !important;
+        overflow: hidden !important;
+    }
+
+    .pos-search-card {
+        flex: 0 0 auto !important;
+    }
+
+    /*
+       RESULTADOS
+       Solo esta zona hace scroll.
+    */
+    .pos-results-card {
+        flex: 0 0 auto !important;
+        max-height: 185px !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        scrollbar-width: thin;
+    }
+
+    /*
+       CARRITO
+       Ocupa todo el espacio restante.
+    */
+    .pos-cart-card {
+        flex: 1 1 0 !important;
+        min-height: 0 !important;
+        height: auto !important;
+        display: flex !important;
+        flex-direction: column !important;
+        overflow: hidden !important;
+    }
+
+    .pos-cart-list {
+        flex: 1 1 auto !important;
+        min-height: 0 !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        scrollbar-width: thin;
+    }
+
+    .pos-cart-empty {
+        flex: 1 1 auto !important;
+        min-height: 0 !important;
+    }
+
+    /*
+       DERECHA
+       UNA SOLA COLUMNA.
+       Sin scroll.
+    */
+    .pos-checkout-panel {
+        min-width: 0 !important;
+        width: 100% !important;
+        height: 100% !important;
+        min-height: 0 !important;
+
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 10px !important;
+
+        position: static !important;
+        max-height: none !important;
+        overflow: visible !important;
+    }
+
+    /*
+       CLIENTE
+    */
+    .pos-client-card {
+        flex: 0 0 auto !important;
+        padding: 12px 14px !important;
+        margin: 0 !important;
+    }
+
+    /*
+       RESUMEN
+    */
+    .pos-summary-card {
+        flex: 0 0 auto !important;
+        padding: 11px 14px !important;
+        margin: 0 !important;
+    }
+
+    /*
+       PAGO
+    */
+    .pos-payment-card {
+        flex: 0 0 auto !important;
+        padding: 11px 14px !important;
+        margin: 0 !important;
+    }
+
+    /*
+       CLIENTE
+    */
+    .pos-client-card .pos-field {
+        margin-top: 7px !important;
+    }
+
+    .pos-client-card .pos-input {
+        height: 38px !important;
+        min-height: 38px !important;
+        font-size: .84rem !important;
+    }
+
+    .pos-client-card small {
+        font-size: .66rem !important;
+        line-height: 1.15 !important;
+    }
+
+    /*
+       RESUMEN
+    */
+    .pos-summary-card .pos-totals {
+        margin-top: 5px !important;
+    }
+
+    .pos-summary-card .pos-totals > div {
+        padding: 4px 0 !important;
+    }
+
+    .pos-summary-card .pos-total-line {
+        margin-top: 3px !important;
+        padding-top: 8px !important;
+    }
+
+    .pos-summary-card .pos-total-line span,
+    .pos-summary-card .pos-total-line strong {
+        font-size: 1.05rem !important;
+    }
+
+    /*
+       METODOS DE PAGO
+    */
+    .pos-payment-methods {
+        margin-top: 8px !important;
+        gap: 7px !important;
+    }
+
+    .pos-payment-option {
+        min-height: 55px !important;
+        height: 55px !important;
+        padding: 6px 4px !important;
+    }
+
+    .payment-icon {
+        margin-bottom: 2px !important;
+        font-size: 1rem !important;
+    }
+
+    /*
+       MONTO RECIBIDO
+       Siempre visible cuando Efectivo.
+    */
+    .pos-cash-field {
+        margin-top: 8px !important;
+    }
+
+    .pos-cash-field .pos-input {
+        height: 38px !important;
+        min-height: 38px !important;
+    }
+
+    .pos-change-box {
+        margin-top: 7px !important;
+        padding: 8px 10px !important;
+    }
+
+    .pos-change-box strong {
+        font-size: 1rem !important;
+    }
+
+    /*
+       BOTON COBRAR
+    */
+    .pos-checkout-button {
+        flex: 0 0 auto !important;
+        width: 100% !important;
+        min-height: 52px !important;
+        height: 52px !important;
+        margin: 0 !important;
+    }
+
+    /*
+       FACTURA GENERADA
+    */
+    .pos-last-invoice {
+        flex: 0 0 auto !important;
+        width: 100% !important;
+        margin: 0 !important;
+    }
+}
+
+/*
+   PANTALLAS DE ESCRITORIO BAJAS
+   */
+@media (min-width: 1101px) and (max-height: 850px) {
+
+    .pos-page {
+        height: calc(100dvh - 150px) !important;
+        padding-top: 6px !important;
+        padding-bottom: 6px !important;
+    }
+
+    .pos-layout {
+        height: calc(100% - 52px) !important;
+        gap: 10px !important;
+        grid-template-columns:
+            minmax(0, 1fr)
+            minmax(480px, 510px) !important;
+    }
+
+    .pos-products-panel {
+        gap: 8px !important;
+    }
+
+    .pos-results-card {
+        max-height: 150px !important;
+    }
+
+    .pos-client-card,
+    .pos-summary-card,
+    .pos-payment-card {
+        padding: 8px 11px !important;
+    }
+
+    .pos-client-card .pos-field {
+        margin-top: 4px !important;
+    }
+
+    .pos-client-card .pos-input,
+    .pos-payment-card .pos-input {
+        height: 33px !important;
+        min-height: 33px !important;
+    }
+
+    .pos-summary-card .pos-totals > div {
+        padding: 2px 0 !important;
+    }
+
+    .pos-payment-methods {
+        margin-top: 5px !important;
+    }
+
+    .pos-payment-option {
+        height: 45px !important;
+        min-height: 45px !important;
+    }
+
+    .pos-cash-field {
+        margin-top: 5px !important;
+    }
+
+    .pos-change-box {
+        margin-top: 4px !important;
+        padding: 6px 8px !important;
+    }
+
+    .pos-checkout-button {
+        height: 47px !important;
+        min-height: 47px !important;
+    }
+}
+
+@media (max-width: 1100px) {
+
+    html,
+    body {
+        overflow: auto !important;
+    }
+
+    .pos-page {
+        height: auto !important;
+        min-height: 100dvh !important;
+        overflow: visible !important;
+    }
+
+    .pos-results-card {
+        max-height: 300px !important;
+        overflow-y: auto !important;
+    }
+
+    .pos-cart-list {
+        max-height: 500px !important;
+        overflow-y: auto !important;
+    }
+
+    .pos-checkout-panel {
+        height: auto !important;
+        max-height: none !important;
+        overflow: visible !important;
+    }
+}
+/* ==========================================================
+   POS - DISTRIBUCION FINAL
+   ========================================================== */
+
+@media (min-width: 1101px) {
+
+    /*
+       --------------------------------------------------------
+       ENCABEZADO
+       --------------------------------------------------------
+       La sucursal deja de ocupar una fila completa.
+       Se convierte en un selector compacto arriba a la derecha.
+    */
+    .pos-header {
+        position: relative !important;
+        display: block !important;
+        margin-bottom: 10px !important;
+        min-height: 56px !important;
+    }
+
+    .pos-header > div:first-child {
+        padding-right: 315px !important;
+        min-width: 0 !important;
+    }
+
+    .pos-branch-indicator {
+        position: absolute !important;
+        top: 0 !important;
+        right: 0 !important;
+
+        width: 285px !important;
+        min-width: 285px !important;
+        max-width: 285px !important;
+
+        padding: 8px 12px !important;
+        margin: 0 !important;
+
+        border: 1px solid #dedede !important;
+        border-radius: 10px !important;
+        background: #ffffff !important;
+        box-sizing: border-box !important;
+
+        box-shadow: 0 3px 10px rgba(0,0,0,.04) !important;
+    }
+
+    .pos-branch-indicator .branch-indicator-label {
+        display: block !important;
+        font-size: .58rem !important;
+        line-height: 1 !important;
+        margin-bottom: 4px !important;
+    }
+
+    .pos-branch-indicator strong {
+        display: block !important;
+        font-size: .78rem !important;
+        line-height: 1.15 !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+    }
+
+    .pos-branch-select {
+        width: 100% !important;
+        padding: 0 !important;
+        font-size: .78rem !important;
+        font-weight: 800 !important;
+    }
+
+    /*
+       --------------------------------------------------------
+       LAYOUT GENERAL
+       --------------------------------------------------------
+    */
+    .pos-layout {
+        height: calc(100% - 66px) !important;
+        grid-template-columns:
+            minmax(0, 1fr)
+            minmax(510px, 540px) !important;
+        gap: 14px !important;
+        overflow: hidden !important;
+    }
+
+    /*
+       --------------------------------------------------------
+       PANEL DERECHO
+       --------------------------------------------------------
+       Cliente + Resumen en la misma fila.
+       Pago debajo.
+       --------------------------------------------------------
+    */
+    .pos-checkout-panel {
+        display: grid !important;
+
+        grid-template-columns:
+            minmax(0, 1.4fr)
+            minmax(185px, 1fr) !important;
+
+        grid-template-rows:
+            auto
+            auto
+            auto !important;
+
+        gap: 10px !important;
+
+        height: auto !important;
+        min-height: 0 !important;
+
+        position: static !important;
+        max-height: none !important;
+        overflow: visible !important;
+    }
+
+    /*
+       Cliente
+    */
+    .pos-client-card {
+        grid-column: 1 !important;
+        grid-row: 1 !important;
+
+        min-width: 0 !important;
+        margin: 0 !important;
+
+        padding: 11px 12px !important;
+    }
+
+    /*
+       Resumen AL LADO del cliente
+    */
+    .pos-summary-card {
+        grid-column: 2 !important;
+        grid-row: 1 !important;
+
+        min-width: 0 !important;
+        margin: 0 !important;
+
+        padding: 11px 12px !important;
+    }
+
+    /*
+       Pago debajo de ambos
+    */
+    .pos-payment-card {
+        grid-column: 1 / -1 !important;
+        grid-row: 2 !important;
+
+        min-width: 0 !important;
+        margin: 0 !important;
+
+        padding: 10px 12px !important;
+    }
+
+    /*
+       Botón cobrar
+    */
+    .pos-checkout-button {
+        grid-column: 1 / -1 !important;
+        grid-row: 3 !important;
+
+        width: 100% !important;
+        min-height: 52px !important;
+        height: 52px !important;
+
+        margin: 0 !important;
+    }
+
+    /*
+       Factura generada
+    */
+    .pos-last-invoice {
+        grid-column: 1 / -1 !important;
+        width: 100% !important;
+    }
+
+    /*
+       --------------------------------------------------------
+       CLIENTE COMPACTO
+       --------------------------------------------------------
+    */
+    .pos-client-card .pos-card-heading,
+    .pos-summary-card .pos-card-heading,
+    .pos-payment-card .pos-card-heading {
+        margin-bottom: 4px !important;
+    }
+
+    .pos-client-card .pos-card-heading h2,
+    .pos-summary-card .pos-card-heading h2,
+    .pos-payment-card .pos-card-heading h2 {
+        font-size: .92rem !important;
+        line-height: 1.05 !important;
+    }
+
+    .pos-client-card .pos-field {
+        margin-top: 5px !important;
+    }
+
+    .pos-client-card .pos-input {
+        height: 35px !important;
+        min-height: 35px !important;
+        font-size: .82rem !important;
+    }
+
+    .pos-client-card small {
+        font-size: .62rem !important;
+        line-height: 1.1 !important;
+    }
+
+    /*
+       --------------------------------------------------------
+       RESUMEN COMPACTO
+       --------------------------------------------------------
+    */
+    .pos-summary-card .pos-totals {
+        margin-top: 3px !important;
+    }
+
+    .pos-summary-card .pos-totals > div {
+        padding: 3px 0 !important;
+        gap: 5px !important;
+    }
+
+    .pos-summary-card .pos-total-line {
+        margin-top: 3px !important;
+        padding-top: 7px !important;
+    }
+
+    .pos-summary-card .pos-total-line span,
+    .pos-summary-card .pos-total-line strong {
+        font-size: .92rem !important;
+    }
+
+    /*
+       --------------------------------------------------------
+       METODOS DE PAGO
+       --------------------------------------------------------
+    */
+    .pos-payment-methods {
+        margin-top: 7px !important;
+        gap: 7px !important;
+    }
+
+    .pos-payment-option {
+        min-height: 50px !important;
+        height: 50px !important;
+
+        padding: 5px 4px !important;
+    }
+
+    .pos-payment-option strong {
+        font-size: .75rem !important;
+        line-height: 1 !important;
+    }
+
+    .payment-icon {
+        font-size: .95rem !important;
+        margin-bottom: 2px !important;
+    }
+
+    /*
+       Monto recibido
+    */
+    .pos-cash-field {
+        margin-top: 7px !important;
+    }
+
+    .pos-cash-field .pos-input {
+        height: 36px !important;
+        min-height: 36px !important;
+    }
+
+    /*
+       Cambio
+    */
+    .pos-change-box {
+        margin-top: 6px !important;
+        padding: 8px 10px !important;
+    }
+
+    /*
+       --------------------------------------------------------
+       IZQUIERDA
+       --------------------------------------------------------
+    */
+    .pos-products-panel {
+        min-height: 0 !important;
+        height: 100% !important;
+
+        display: flex !important;
+        flex-direction: column !important;
+
+        overflow: hidden !important;
+        gap: 10px !important;
+    }
+
+    /*
+       Resultados: scroll propio
+    */
+    .pos-results-card {
+        flex: 0 0 auto !important;
+
+        max-height: 180px !important;
+
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+
+        scrollbar-width: thin;
+    }
+
+    /*
+       Carrito: ocupa el resto
+    */
+    .pos-cart-card {
+        flex: 1 1 0 !important;
+
+        min-height: 0 !important;
+        height: auto !important;
+
+        display: flex !important;
+        flex-direction: column !important;
+
+        overflow: hidden !important;
+    }
+
+    .pos-cart-list {
+        flex: 1 1 auto !important;
+
+        min-height: 0 !important;
+
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+
+        scrollbar-width: thin;
+    }
+}
+
+
+/* ==========================================================
+   PANTALLAS DE ESCRITORIO CON POCA ALTURA
+   ========================================================== */
+
+@media (min-width: 1101px) and (max-height: 850px) {
+
+    .pos-page {
+        height: calc(100dvh - 145px) !important;
+        padding-top: 6px !important;
+        padding-bottom: 6px !important;
+    }
+
+    .pos-header {
+        min-height: 48px !important;
+        margin-bottom: 7px !important;
+    }
+
+    .pos-layout {
+        height: calc(100% - 55px) !important;
+        grid-template-columns:
+            minmax(0, 1fr)
+            minmax(500px, 525px) !important;
+        gap: 10px !important;
+    }
+
+    .pos-branch-indicator {
+        width: 260px !important;
+        min-width: 260px !important;
+        max-width: 260px !important;
+
+        padding: 6px 9px !important;
+    }
+
+    .pos-header > div:first-child {
+        padding-right: 280px !important;
+    }
+
+    .pos-client-card,
+    .pos-summary-card,
+    .pos-payment-card {
+        padding: 8px 10px !important;
+    }
+
+    .pos-client-card .pos-input {
+        height: 32px !important;
+        min-height: 32px !important;
+    }
+
+    .pos-summary-card .pos-totals > div {
+        padding: 2px 0 !important;
+    }
+
+    .pos-payment-option {
+        height: 44px !important;
+        min-height: 44px !important;
+    }
+
+    .pos-payment-card .pos-input {
+        height: 32px !important;
+        min-height: 32px !important;
+    }
+
+    .pos-change-box {
+        padding: 6px 8px !important;
+    }
+
+    .pos-checkout-button {
+        height: 47px !important;
+        min-height: 47px !important;
+    }
+
+    .pos-results-card {
+        max-height: 145px !important;
+    }
+}
+
+
+/* ==========================================================
+   TABLET / MOVIL
+   ========================================================== */
+
+@media (max-width: 1100px) {
+
+    html,
+    body {
+        overflow: auto !important;
+    }
+
+    .pos-page {
+        height: auto !important;
+        min-height: 100dvh !important;
+        overflow: visible !important;
+    }
+
+    .pos-header {
+        min-height: 0 !important;
+    }
+
+    .pos-header > div:first-child {
+        padding-right: 0 !important;
+    }
+
+    .pos-branch-indicator {
+        position: static !important;
+        width: 100% !important;
+        max-width: none !important;
+        margin-top: 10px !important;
+    }
+
+    .pos-results-card {
+        max-height: 300px !important;
+        overflow-y: auto !important;
+    }
+
+    .pos-cart-list {
+        max-height: 500px !important;
+        overflow-y: auto !important;
+    }
+}
+/* ==========================================================
+   POS - AJUSTE FINAL DE COBRO
+   ========================================================== */
+
+@media (min-width: 1101px) {
+
+    /*
+       Subimos y compactamos el panel derecho.
+    */
+    .pos-checkout-panel {
+        gap: 7px !important;
+        align-content: start !important;
+    }
+
+    .pos-client-card,
+    .pos-summary-card {
+        padding: 9px 11px !important;
+    }
+
+    .pos-payment-card {
+        padding: 9px 11px !important;
+        margin-top: -2px !important;
+    }
+
+    /*
+       Cliente
+    */
+    .pos-client-card .pos-card-heading,
+    .pos-summary-card .pos-card-heading,
+    .pos-payment-card .pos-card-heading {
+        margin-bottom: 3px !important;
+    }
+
+    .pos-client-card .pos-field {
+        margin-top: 5px !important;
+    }
+
+    .pos-client-card .pos-input {
+        height: 34px !important;
+        min-height: 34px !important;
+    }
+
+    /*
+       Resumen
+    */
+    .pos-summary-card .pos-totals {
+        margin-top: 2px !important;
+    }
+
+    .pos-summary-card .pos-totals > div {
+        padding: 2px 0 !important;
+    }
+
+    .pos-summary-card .pos-total-line {
+        margin-top: 2px !important;
+        padding-top: 6px !important;
+    }
+
+    /*
+       Métodos de pago
+       Los tres botones mantienen exactamente la
+       misma estructura y tamaño.
+    */
+    .pos-payment-methods {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+        gap: 7px !important;
+        margin-top: 6px !important;
+    }
+
+    .pos-payment-option {
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: center !important;
+        align-items: center !important;
+
+        min-width: 0 !important;
+        min-height: 58px !important;
+        height: 58px !important;
+
+        padding: 5px 4px !important;
+
+        border: 1px solid #d4d4cd !important;
+        border-radius: 12px !important;
+
+        background: #ffffff !important;
+
+        box-sizing: border-box !important;
+        text-align: center !important;
+    }
+
+    .pos-payment-option.selected {
+        border: 2px solid #111111 !important;
+        background: #fff1a7 !important;
+    }
+
+    /*
+       ICONO UNIFORME
+    */
+    .payment-icon {
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+
+        width: 26px !important;
+        height: 26px !important;
+
+        margin: 0 0 3px 0 !important;
+
+        border-radius: 7px !important;
+
+        background: #111111 !important;
+        color: #ffd91a !important;
+
+        font-size: 14px !important;
+        font-weight: 900 !important;
+        line-height: 1 !important;
+        font-family: Arial, sans-serif !important;
+
+        box-sizing: border-box !important;
+    }
+
+    .payment-icon-cash {
+        border-radius: 50% !important;
+    }
+
+    .payment-icon-card {
+        font-size: 17px !important;
+    }
+
+    .payment-icon-transfer {
+        font-size: 17px !important;
+    }
+
+    .pos-payment-option > span:last-child {
+        display: block !important;
+        font-size: .74rem !important;
+        font-weight: 850 !important;
+        line-height: 1 !important;
+        white-space: nowrap !important;
+    }
+
+    /*
+       Monto recibido
+    */
+    .pos-cash-field {
+        margin-top: 6px !important;
+    }
+
+    .pos-cash-field .pos-input {
+        height: 36px !important;
+        min-height: 36px !important;
+    }
+
+    /*
+       Mensaje de pago insuficiente
+    */
+    .pos-payment-warning {
+        display: block !important;
+
+        margin-top: 6px !important;
+        padding: 7px 9px !important;
+
+        border: 1px solid #e1bf73 !important;
+        border-radius: 9px !important;
+
+        background: #fff0d4 !important;
+        color: #7a4f00 !important;
+
+        font-size: .70rem !important;
+        line-height: 1.2 !important;
+    }
+
+    .pos-payment-warning strong {
+        font-weight: 900 !important;
+    }
+
+    /*
+       Cambio
+    */
+    .pos-change-box {
+        margin-top: 6px !important;
+        padding: 8px 10px !important;
+    }
+
+    /*
+       Botón
+    */
+    .pos-checkout-button {
+        margin-top: 0 !important;
+        min-height: 50px !important;
+        height: 50px !important;
+    }
+}
+
+/*
+   Pantallas con poca altura
+*/
+@media (min-width: 1101px) and (max-height: 850px) {
+
+    .pos-checkout-panel {
+        gap: 6px !important;
+    }
+
+    .pos-client-card,
+    .pos-summary-card {
+        padding: 7px 9px !important;
+    }
+
+    .pos-payment-card {
+        padding: 7px 9px !important;
+    }
+
+    .pos-payment-option {
+        min-height: 50px !important;
+        height: 50px !important;
+    }
+
+    .payment-icon {
+        width: 22px !important;
+        height: 22px !important;
+        font-size: 12px !important;
+    }
+
+    .payment-icon-card,
+    .payment-icon-transfer {
+        font-size: 15px !important;
+    }
+
+    .pos-payment-option > span:last-child {
+        font-size: .70rem !important;
+    }
+
+    .pos-cash-field .pos-input {
+        height: 32px !important;
+        min-height: 32px !important;
+    }
+
+    .pos-payment-warning {
+        margin-top: 4px !important;
+        padding: 6px 8px !important;
+        font-size: .66rem !important;
+    }
+
+    .pos-change-box {
+        padding: 6px 8px !important;
+    }
+
+    .pos-checkout-button {
+        min-height: 46px !important;
+        height: 46px !important;
+    }
+}
+
+.pos-last-invoice {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 14px;
+    padding: 13px 15px;
+    border-radius: 12px;
+    background: #fff1b8;
+    color: #171717;
+}
+
+.pos-last-invoice span {
+    color: #6c6c67;
+    font-size: 0.78rem;
+}
+
+.pos-last-invoice strong {
+    font-size: 0.84rem;
+}
+
+.pos-print-invoice {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 38px;
+    padding: 8px 13px;
+    border: 1px solid #111111;
+    border-radius: 10px;
+    background: #111111;
+    color: #ffd91a;
+    text-decoration: none;
+    font-size: 0.78rem;
+    font-weight: 850;
+    white-space: nowrap;
+}
+
+.pos-print-invoice:hover {
+    background: #2b2b2b;
+    color: #ffd91a;
+    text-decoration: none;
+}
+

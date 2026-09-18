@@ -51,6 +51,10 @@ public static class DependencyInjection
             ISucursalRepository,
             SucursalRepository>();
 
+        services.AddScoped<
+            IVentaRepository,
+            VentaRepository>();
+
         services.AddScoped<CategoriaService>();
 
         services.AddScoped<ProductoService>();
@@ -63,6 +67,8 @@ public static class DependencyInjection
 
         services.AddScoped<UsuarioService>();
 
+        services.AddScoped<VentaService>();
+
         services.AddScoped<
             IAutenticacionService,
             AutenticacionService>();
@@ -70,3 +76,5 @@ public static class DependencyInjection
         return services;
     }
 }
+
+

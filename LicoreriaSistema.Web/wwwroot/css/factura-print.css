@@ -1,0 +1,61 @@
+﻿@media print {
+
+    body * {
+        visibility: hidden !important;
+    }
+
+    .factura-document,
+    .factura-document * {
+        visibility: visible !important;
+    }
+
+    .factura-document {
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100% !important;
+        max-width: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: #ffffff !important;
+        box-shadow: none !important;
+        border: 0 !important;
+    }
+
+    .factura-page {
+        min-height: 0 !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: #ffffff !important;
+    }
+
+    .no-print,
+    .factura-actions,
+    button {
+        display: none !important;
+    }
+
+    .factura-detalle {
+        overflow: visible !important;
+    }
+
+    .factura-detalle table {
+        width: 100% !important;
+        min-width: 0 !important;
+    }
+
+    html,
+    body {
+        width: 100% !important;
+        min-height: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: #ffffff !important;
+    }
+
+    @page {
+        size: A4;
+        margin: 10mm;
+    }
+}

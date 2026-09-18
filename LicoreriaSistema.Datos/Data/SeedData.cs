@@ -355,6 +355,7 @@ public static class SeedData
             10, 11, 12, 13,
             14, 15,
             16, 17,
+            18,       // CAJA_OPERAR
             20, 21,
             22,
             24
@@ -458,20 +459,22 @@ public static class SeedData
         //   - Productos (solo consulta)
         //   - Categorías
         //   - Sucursales (solo consulta)
+        //   - Punto de ventas
         //
         // No tiene:
         //   - Inventario
         //   - Usuarios
         //   - Roles
-        //   - POS
         //   - Gestión de sucursales
         // =========================================================
 
         var permisosAlmacen = new[]
         {
-            1, // PRODUCTOS_CONSULTAR
-            6, // CATEGORIAS_GESTIONAR
-            22 // SUCURSALES_CONSULTAR
+            1,  // PRODUCTOS_CONSULTAR
+            6,  // CATEGORIAS_GESTIONAR
+            14, // VENTAS_CREAR
+            18, // CAJA_OPERAR
+            22  // SUCURSALES_CONSULTAR
         };
 
         modelBuilder.Entity<RolPermiso>().HasData(
@@ -484,3 +487,5 @@ public static class SeedData
         );
     }
 }
+
+

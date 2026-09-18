@@ -6,31 +6,61 @@ namespace LicoreriaSistema.Datos.Context;
 
 public class LicoreriaDbContext : DbContext
 {
-    public LicoreriaDbContext(DbContextOptions<LicoreriaDbContext> options)
+    public LicoreriaDbContext(
+        DbContextOptions<LicoreriaDbContext> options)
         : base(options)
     {
     }
 
-    // Negocio
-    public DbSet<Sucursal> Sucursales => Set<Sucursal>();
-    public DbSet<Categoria> Categorias => Set<Categoria>();
-    public DbSet<Producto> Productos => Set<Producto>();
-    public DbSet<InventarioSucursal> InventariosSucursal => Set<InventarioSucursal>();
+    // =========================================================
+    // NEGOCIO
+    // =========================================================
 
-    public DbSet<ClasificacionFiscal> ClasificacionesFiscales
-        => Set<ClasificacionFiscal>();
+    public DbSet<Sucursal> Sucursales =>
+        Set<Sucursal>();
 
-    public DbSet<ReglaImpuesto> ReglasImpuesto
-        => Set<ReglaImpuesto>();
+    public DbSet<Categoria> Categorias =>
+        Set<Categoria>();
 
-    // Seguridad
-    public DbSet<Rol> Roles => Set<Rol>();
-    public DbSet<Permiso> Permisos => Set<Permiso>();
-    public DbSet<Usuario> Usuarios => Set<Usuario>();
-    public DbSet<RolPermiso> RolPermisos => Set<RolPermiso>();
-    public DbSet<UsuarioSucursal> UsuariosSucursales => Set<UsuarioSucursal>();
+    public DbSet<Producto> Productos =>
+        Set<Producto>();
 
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    public DbSet<InventarioSucursal> InventariosSucursal =>
+        Set<InventarioSucursal>();
+
+    public DbSet<ClasificacionFiscal> ClasificacionesFiscales =>
+        Set<ClasificacionFiscal>();
+
+    public DbSet<ReglaImpuesto> ReglasImpuesto =>
+        Set<ReglaImpuesto>();
+
+    public DbSet<Venta> Ventas =>
+        Set<Venta>();
+
+    public DbSet<VentaDetalle> VentasDetalles =>
+        Set<VentaDetalle>();
+
+    // =========================================================
+    // SEGURIDAD
+    // =========================================================
+
+    public DbSet<Rol> Roles =>
+        Set<Rol>();
+
+    public DbSet<Permiso> Permisos =>
+        Set<Permiso>();
+
+    public DbSet<Usuario> Usuarios =>
+        Set<Usuario>();
+
+    public DbSet<RolPermiso> RolPermisos =>
+        Set<RolPermiso>();
+
+    public DbSet<UsuarioSucursal> UsuariosSucursales =>
+        Set<UsuarioSucursal>();
+
+    protected override void OnModelCreating(
+        ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
 
@@ -47,10 +77,15 @@ public class LicoreriaDbContext : DbContext
                 .IsRequired();
 
             entity.Property(x => x.Direccion)
-                .HasMaxLength(250);
+                .HasMaxLength(250)
+                .IsRequired();
 
             entity.Property(x => x.Telefono)
-                .HasMaxLength(30);
+                .HasMaxLength(30)
+                .IsRequired();
+
+            entity.Property(x => x.Activa)
+                .IsRequired();
         });
 
         // =========================================================
@@ -67,40 +102,11 @@ public class LicoreriaDbContext : DbContext
 
             entity.Property(x => x.Descripcion)
                 .HasMaxLength(250);
+
+            entity.Property(x => x.Activa)
+                .IsRequired();
         });
 
-        // =========================================================
-        // PRODUCTO
-        // =========================================================
-
-        modelBuilder.Entity<Producto>(entity =>
-        {
-            entity.HasKey(x => x.Id);
-
-            entity.Property(x => x.Nombre)
-                .HasMaxLength(150)
-                .IsRequired();
-
-            entity.Property(x => x.Codigo)
-                .HasMaxLength(50)
-                .IsRequired();
-
-            entity.HasIndex(x => x.Codigo)
-                .IsUnique();
-
-            entity.Property(x => x.PrecioCompra)
-                .HasPrecision(18, 2);
-
-            entity.Property(x => x.PrecioVenta)
-                .HasPrecision(18, 2);
-
-            entity.HasOne(x => x.Categoria)
-                .WithMany(x => x.Productos)
-                .HasForeignKey(x => x.CategoriaId)
-                .OnDelete(DeleteBehavior.Restrict);
-        });
-
-        // =========================================================
         // =========================================================
         // CLASIFICACION FISCAL
         // =========================================================
@@ -115,6 +121,9 @@ public class LicoreriaDbContext : DbContext
 
             entity.Property(x => x.Descripcion)
                 .HasMaxLength(250);
+
+            entity.Property(x => x.Activo)
+                .IsRequired();
 
             entity.HasIndex(x => x.Nombre)
                 .IsUnique();
@@ -151,12 +160,59 @@ public class LicoreriaDbContext : DbContext
             entity.Property(x => x.UnidadCalculo)
                 .HasMaxLength(100);
 
+            entity.Property(x => x.FechaInicio)
+                .IsRequired();
+
             entity.HasIndex(x => new
             {
                 x.ClasificacionFiscalId,
                 x.TipoImpuesto,
                 x.FechaInicio
             });
+        });
+
+        // =========================================================
+        // PRODUCTO
+        // =========================================================
+
+        modelBuilder.Entity<Producto>(entity =>
+        {
+            entity.HasKey(x => x.Id);
+
+            entity.Property(x => x.Nombre)
+                .HasMaxLength(150)
+                .IsRequired();
+
+            entity.Property(x => x.Codigo)
+                .HasMaxLength(50)
+                .IsRequired();
+
+            entity.Property(x => x.ImagenUrl)
+                .HasMaxLength(1000);
+
+            entity.HasIndex(x => x.Codigo)
+                .IsUnique();
+
+            entity.Property(x => x.Descripcion);
+
+            entity.Property(x => x.PrecioCompra)
+                .HasPrecision(18, 2);
+
+            entity.Property(x => x.PrecioVenta)
+                .HasPrecision(18, 2);
+
+            entity.Property(x => x.Activo)
+                .IsRequired();
+
+            entity.HasOne(x => x.Categoria)
+                .WithMany(x => x.Productos)
+                .HasForeignKey(x => x.CategoriaId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(x => x.ClasificacionFiscal)
+                .WithMany(x => x.Productos)
+                .HasForeignKey(x => x.ClasificacionFiscalId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
 
         // =========================================================
@@ -195,6 +251,148 @@ public class LicoreriaDbContext : DbContext
         });
 
         // =========================================================
+        // VENTA
+        // =========================================================
+
+        modelBuilder.Entity<Venta>(entity =>
+        {
+            entity.HasKey(x => x.Id);
+
+            entity.Property(x => x.NumeroFactura)
+                .HasMaxLength(30)
+                .IsRequired();
+
+            entity.HasIndex(x => x.NumeroFactura)
+                .IsUnique();
+
+            entity.Property(x => x.Fecha)
+                .IsRequired();
+
+            entity.Property(x => x.NombreComercialEmisor)
+                .HasMaxLength(150)
+                .IsRequired();
+
+            entity.Property(x => x.RncEmisor)
+                .HasMaxLength(20)
+                .IsRequired();
+
+            entity.Property(x => x.NombreSucursalEmisor)
+                .HasMaxLength(150)
+                .IsRequired();
+
+            entity.Property(x => x.DireccionSucursalEmisor)
+                .HasMaxLength(250)
+                .IsRequired();
+
+            entity.Property(x => x.TelefonoSucursalEmisor)
+                .HasMaxLength(30)
+                .IsRequired();
+
+            entity.Property(x => x.NombreCliente)
+                .HasMaxLength(200)
+                .IsRequired();
+
+            entity.Property(x => x.RncCliente)
+                .HasMaxLength(20);
+
+            entity.Property(x => x.Subtotal)
+                .HasPrecision(18, 2);
+
+            entity.Property(x => x.Itbis)
+                .HasPrecision(18, 2);
+
+            entity.Property(x => x.Isc)
+                .HasPrecision(18, 2);
+
+            entity.Property(x => x.Total)
+                .HasPrecision(18, 2);
+
+            entity.Property(x => x.MetodoPago)
+                .HasMaxLength(30)
+                .IsRequired();
+
+            entity.Property(x => x.MontoRecibido)
+                .HasPrecision(18, 2);
+
+            entity.Property(x => x.Cambio)
+                .HasPrecision(18, 2);
+
+            entity.Property(x => x.Estado)
+                .HasMaxLength(20)
+                .IsRequired();
+
+            entity.HasOne(x => x.Usuario)
+                .WithMany()
+                .HasForeignKey(x => x.UsuarioId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(x => x.Sucursal)
+                .WithMany()
+                .HasForeignKey(x => x.SucursalId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // =========================================================
+        // VENTA DETALLE
+        // =========================================================
+
+        modelBuilder.Entity<VentaDetalle>(entity =>
+        {
+            entity.HasKey(x => x.Id);
+
+            entity.Property(x => x.CodigoProducto)
+                .HasMaxLength(50)
+                .IsRequired();
+
+            entity.Property(x => x.NombreProducto)
+                .HasMaxLength(150)
+                .IsRequired();
+
+            entity.Property(x => x.ImagenUrl)
+                .HasMaxLength(1000);
+
+            entity.Property(x => x.Cantidad)
+                .HasPrecision(18, 3);
+
+            entity.Property(x => x.PrecioUnitario)
+                .HasPrecision(18, 2);
+
+            entity.Property(x => x.Subtotal)
+                .HasPrecision(18, 2);
+
+            entity.Property(x => x.TasaItbis)
+                .HasPrecision(18, 6);
+
+            entity.Property(x => x.Itbis)
+                .HasPrecision(18, 2);
+
+            entity.Property(x => x.TasaIscAdValorem)
+                .HasPrecision(18, 6);
+
+            entity.Property(x => x.IscAdValorem)
+                .HasPrecision(18, 2);
+
+            entity.Property(x => x.IscEspecifico)
+                .HasPrecision(18, 2);
+
+            entity.Property(x => x.Isc)
+                .HasPrecision(18, 2);
+
+            entity.Property(x => x.Total)
+                .HasPrecision(18, 2);
+
+            entity.HasOne(x => x.Venta)
+                .WithMany(x => x.Detalles)
+                .HasForeignKey(x => x.VentaId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(x => x.Producto)
+                .WithMany()
+                .HasForeignKey(x => x.ProductoId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // =========================================================
         // ROL
         // =========================================================
 
@@ -208,6 +406,9 @@ public class LicoreriaDbContext : DbContext
 
             entity.Property(x => x.Descripcion)
                 .HasMaxLength(250);
+
+            entity.Property(x => x.Activo)
+                .IsRequired();
 
             entity.HasIndex(x => x.Nombre)
                 .IsUnique();
@@ -231,6 +432,9 @@ public class LicoreriaDbContext : DbContext
 
             entity.Property(x => x.Descripcion)
                 .HasMaxLength(250);
+
+            entity.Property(x => x.Activo)
+                .IsRequired();
 
             entity.HasIndex(x => x.Codigo)
                 .IsUnique();
@@ -289,6 +493,12 @@ public class LicoreriaDbContext : DbContext
                 .HasMaxLength(500)
                 .IsRequired();
 
+            entity.Property(x => x.Activo)
+                .IsRequired();
+
+            entity.Property(x => x.AlcanceGlobal)
+                .IsRequired();
+
             entity.HasIndex(x => x.NombreUsuario)
                 .IsUnique();
 
@@ -331,5 +541,5 @@ public class LicoreriaDbContext : DbContext
 
         SeedData.Seed(modelBuilder);
     }
-
 }
+

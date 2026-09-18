@@ -19,6 +19,7 @@ public class Producto
     public Categoria Categoria { get; set; } = null!;
 
     public bool Activo { get; set; } = true;
+    public string? ImagenUrl { get; set; }
     public int? ClasificacionFiscalId { get; set; }
 
     public ClasificacionFiscal? ClasificacionFiscal { get; set; }
@@ -26,3 +27,4 @@ public class Producto
     public ICollection<InventarioSucursal> Inventarios { get; set; }
         = new List<InventarioSucursal>();
 }
+

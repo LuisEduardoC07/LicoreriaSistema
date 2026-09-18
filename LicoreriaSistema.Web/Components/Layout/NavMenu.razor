@@ -84,7 +84,7 @@
              PRINCIPAL
              ================================================== -->
 
-        <div class="nav-section">
+    <div class="nav-section">
             <span class="nav-section-title">
                 PRINCIPAL
             </span>
@@ -110,6 +110,36 @@
             </span>
 
         </NavLink>
+        <AuthorizeView>
+            <Authorized>
+
+                <NavLink
+                    class="nav-item"
+                    href="punto-de-venta"
+                    Match="NavLinkMatch.All">
+
+                    <span class="nav-icon">
+                        <svg
+                            viewBox="0 0 24 24"
+                            aria-hidden="true">
+
+                            <path d="M4 5h16v14H4z" />
+                            <path d="M8 9h8" />
+                            <path d="M8 13h5" />
+                            <path d="M8 17h3" />
+                            <path d="M16 13v4" />
+                            <path d="M14 15h4" />
+                        </svg>
+                    </span>
+
+                    <span class="nav-text">
+                        Punto de Venta
+                    </span>
+
+                </NavLink>
+
+            </Authorized>
+        </AuthorizeView>
 
 
         <!-- ==================================================
@@ -123,7 +153,8 @@
             PermisosSistema.CategoriasGestionar,
             PermisosSistema.SucursalesConsultar))
         {
-            <div class="nav-section">
+
+    <div class="nav-section">
                 <span class="nav-section-title">
                     GESTIÓN
                 </span>
@@ -292,7 +323,8 @@
             PermisosSistema.RolesGestionar,
             PermisosSistema.PermisosGestionar))
         {
-            <div class="nav-section">
+
+    <div class="nav-section">
                 <span class="nav-section-title">
                     SEGURIDAD
                 </span>
@@ -364,8 +396,7 @@
             </Authorized>
 
         </AuthorizeView>
-
-    </nav>
+</nav>
 
 
     <!-- ======================================================
@@ -471,3 +502,7 @@
         ).ToUpperInvariant();
     }
 }
+
+
+
+

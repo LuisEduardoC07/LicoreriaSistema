@@ -480,3 +480,23 @@ $RECYCLE.BIN/
 
 # Vim temporary swap files
 *.swp
+*.bak
+*.bak_*
+/LicoreriaSistema.Dominio/Entidades/*
+!/LicoreriaSistema.Dominio/Entidades/*.cs
+*.bad_posfix
+/_FiscalDiagnostico/
+/RepararPuntoVenta.ps1
+!/LicoreriaSistema.Dominio/Entidades/Categoria.cs
+!/LicoreriaSistema.Dominio/Entidades/InventarioSucursal.cs
+!/LicoreriaSistema.Dominio/Entidades/Permiso.cs
+!/LicoreriaSistema.Dominio/Entidades/Producto.cs
+!/LicoreriaSistema.Dominio/Entidades/Rol.cs
+!/LicoreriaSistema.Dominio/Entidades/RolPermiso.cs
+!/LicoreriaSistema.Dominio/Entidades/Sucursal.cs
+!/LicoreriaSistema.Dominio/Entidades/Usuario.cs
+!/LicoreriaSistema.Dominio/Entidades/UsuarioSucursal.cs
+!/LicoreriaSistema.Dominio/Entidades/ClasificacionFiscal.cs
+!/LicoreriaSistema.Dominio/Entidades/ReglaImpuesto.cs
+!/LicoreriaSistema.Dominio/Entidades/Venta.cs
+!/LicoreriaSistema.Dominio/Entidades/VentaDetalle.cs

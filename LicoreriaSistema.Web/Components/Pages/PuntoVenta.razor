@@ -1,0 +1,900 @@
+﻿@page "/punto-de-venta"
+
+@attribute [Authorize]
+@rendermode InteractiveServer
+
+@using System.Globalization
+@using Microsoft.AspNetCore.Components.Web
+@using LicoreriaSistema.Dominio.Entidades
+@using LibreriaSistema.Aplicacion.Modelos
+@using LibreriaSistema.Aplicacion.Servicios
+@using LibreriaSistema.Aplicacion.Interfaces
+
+@inject VentaService VentaService
+@inject IContextoUsuarioActual ContextoUsuarioActual
+
+<PageTitle>Punto de Venta</PageTitle>
+
+<div class="pos-page">
+
+    <header class="pos-header">
+        <div>
+            <span class="pos-eyebrow">OPERACIONES</span>
+            <h1>Punto de Venta</h1>
+            <p>Busca productos, arma el carrito, cobra y descuenta automáticamente el inventario.</p>
+        </div>
+
+        <div class="pos-branch-indicator">
+            <span class="branch-indicator-label">Sucursal</span>
+
+            @if (CargandoSucursales)
+            {
+                <strong>Cargando...</strong>
+            }
+            else if (EsAlcanceGlobal && ListaSucursales.Count > 1)
+            {
+                <select class="pos-branch-select"
+                        @bind="SucursalSeleccionadaId"
+                        @bind:after="CambioSucursal">
+                    @foreach (var sucursal in ListaSucursales)
+                    {
+                        <option value="@sucursal.Id">@sucursal.Nombre</option>
+                    }
+                </select>
+            }
+            else
+            {
+                <strong>@(SucursalSeleccionada?.Nombre ?? "Sin sucursal")</strong>
+            }
+        </div>
+    </header>
+
+    @if (!string.IsNullOrWhiteSpace(Mensaje))
+    {
+        <div class="pos-alert @(MensajeExitoso ? "pos-alert-success" : "pos-alert-error")">
+            <span>@Mensaje</span>
+            <button type="button" @onclick="LimpiarMensaje" aria-label="Cerrar">×</button>
+        </div>
+    }
+
+    @if (CargandoInicial)
+    {
+        <div class="pos-loading">
+            <div class="spinner-border" role="status"></div>
+            <span>Preparando punto de venta...</span>
+        </div>
+    }
+    else
+    {
+        <div class="pos-layout">
+
+            <section class="pos-products-panel">
+
+                <div class="pos-search-card">
+                    <div class="pos-search-heading">
+                        <div>
+                            <span class="pos-section-label">PRODUCTOS</span>
+                            <h2>Buscar producto</h2>
+                        </div>
+                        <span class="pos-scan-label">Lector de barras</span>
+                    </div>
+
+                    <div class="pos-search-box">
+                        <span class="pos-search-icon">⌕</span>
+
+                        <input type="text"
+                               class="pos-search-input"
+                               placeholder="Escribe nombre, código o escanea..."
+                               value="@TextoBusqueda"
+                               @oninput="CambiarTextoBusqueda"
+                               @onkeydown="ProcesarBusquedaKeyDown"
+                               autocomplete="off"
+                               autofocus />
+                    </div>
+
+                    <div class="pos-search-help">
+                        La búsqueda filtra mientras escribes. Un código exacto + Enter se agrega automáticamente.
+                    </div>
+                </div>
+
+                @if (CargandoBusqueda)
+                {
+                    <div class="pos-search-loading">
+                        <div class="spinner-border spinner-border-sm"></div>
+                        <span>Buscando productos...</span>
+                    </div>
+                }
+                else if (ResultadosBusqueda.Count > 0)
+                {
+                    <div class="pos-results-card">
+                        <div class="pos-results-header">
+                            <strong>Productos disponibles</strong>
+                            <span>@ResultadosBusqueda.Count resultado(s)</span>
+                        </div>
+
+                        <div class="pos-results-list">
+                            @foreach (var item in ResultadosBusqueda)
+                            {
+                                <button type="button"
+                                        class="pos-product-result"
+                                        @onclick="() => AgregarProducto(item)">
+
+                                    <div class="pos-product-image">
+                                        @{ var imagenResultado = ObtenerImagenUrl(item.Producto); }
+                                        @if (!string.IsNullOrWhiteSpace(imagenResultado))
+                                        {
+                                            <img src="@imagenResultado"
+                                                 alt="@item.Producto.Nombre"
+                                                 loading="lazy"
+                                                 onerror="this.style.display='none';this.nextElementSibling.style.display='grid';" />
+                                            <span style="display:none">🍾</span>
+                                        }
+                                        else
+                                        {
+                                            <span>🍾</span>
+                                        }
+                                    </div>
+
+                                    <div class="pos-product-main">
+                                        <strong>@item.Producto.Nombre</strong>
+                                        <span>Código: @item.Producto.Codigo</span>
+                                    </div>
+
+                                    <div class="pos-product-stock">
+                                        <span>Disponible</span>
+                                        <strong>@item.Cantidad.ToString("N2")</strong>
+                                    </div>
+
+                                    <div class="pos-product-price">
+                                        RD$ @item.Producto.PrecioVenta.ToString("N2")
+                                    </div>
+
+                                    <span class="pos-add-symbol">+</span>
+                                </button>
+                            }
+                        </div>
+                    </div>
+                }
+                else if (HaBuscado)
+                {
+                    <div class="pos-no-results">
+                        <div class="pos-empty-icon">⌕</div>
+                        <h3>No encontramos productos disponibles</h3>
+                        <p>Prueba con otra parte del nombre o con el código de barras.</p>
+                    </div>
+                }
+
+                <div class="pos-cart-card">
+                    <div class="pos-cart-header">
+                        <div>
+                            <span class="pos-section-label">CARRITO</span>
+                            <h2>Productos de la venta</h2>
+                        </div>
+                        <span class="pos-cart-count">
+                            @CantidadProductosCarrito producto(s) · @CantidadUnidadesCarrito unidad(es)
+                        </span>
+                    </div>
+
+                    @if (Carrito.Count == 0)
+                    {
+                        <div class="pos-cart-empty">
+                            <div class="pos-empty-icon">🛒</div>
+                            <h3>El carrito está vacío</h3>
+                            <p>Busca un producto y presiona el botón + para agregarlo.</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="pos-cart-list">
+                            @foreach (var linea in Carrito)
+                            {
+                                var inventario = ObtenerDatosCarrito(linea.ProductoId);
+                                var nombre = inventario?.Producto.Nombre ?? $"Producto #{linea.ProductoId}";
+                                var codigo = inventario?.Producto.Codigo ?? string.Empty;
+                                var imagen = inventario?.Producto is not null
+                                    ? ObtenerImagenUrl(inventario.Producto)
+                                    : null;
+                                var precio = inventario?.Producto.PrecioVenta ?? 0m;
+                                var subtotalLinea = Redondear(precio * linea.Cantidad);
+                                var totalLinea = Cotizacion.Exitoso
+                                    ? (Cotizacion.Lineas.FirstOrDefault(x => x.ProductoId == linea.ProductoId)?.Total ?? subtotalLinea)
+                                    : subtotalLinea;
+
+                                <div class="pos-cart-item">
+                                    <div class="pos-cart-image">
+                                        @if (!string.IsNullOrWhiteSpace(imagen))
+                                        {
+                                            <img src="@imagen"
+                                                 alt="@nombre"
+                                                 loading="lazy"
+                                                 onerror="this.style.display='none';this.nextElementSibling.style.display='grid';" />
+                                            <span style="display:none">🍾</span>
+                                        }
+                                        else
+                                        {
+                                            <span>🍾</span>
+                                        }
+                                    </div>
+
+                                    <div class="pos-cart-product">
+                                        <strong>@nombre</strong>
+                                        <span>@codigo</span>
+                                        @if (inventario is not null)
+                                        {
+                                            <small>Disponible: @inventario.Cantidad.ToString("N2")</small>
+                                        }
+                                    </div>
+
+                                    <div class="pos-cart-quantity">
+                                        <button type="button" @onclick="() => CambiarCantidad(linea.ProductoId, -1)">−</button>
+
+                                        <input type="number"
+                                               min="0.01"
+                                               step="0.01"
+                                               value="@linea.Cantidad.ToString("0.##", CultureInfo.InvariantCulture)"
+                                               @onchange="e => CambiarCantidadTexto(linea.ProductoId, e.Value?.ToString())" />
+
+                                        <button type="button" @onclick="() => CambiarCantidad(linea.ProductoId, 1)">+</button>
+                                    </div>
+
+                                    <div class="pos-cart-price">
+                                        <span>RD$ @precio.ToString("N2") c/u</span>
+                                        <strong>RD$ @totalLinea.ToString("N2")</strong>
+                                    </div>
+
+                                    <button type="button"
+                                            class="pos-remove-button"
+                                            title="Quitar producto"
+                                            @onclick="() => QuitarProducto(linea.ProductoId)">
+                                        ×
+                                    </button>
+                                </div>
+                            }
+                        </div>
+
+                        @if (!Cotizacion.Exitoso && !string.IsNullOrWhiteSpace(Cotizacion.Mensaje))
+                        {
+                            <div class="pos-quote-warning">
+                                <strong>Revisión fiscal</strong>
+                                <span>@Cotizacion.Mensaje</span>
+                            </div>
+                        }
+                    }
+                </div>
+
+            </section>
+
+            <aside class="pos-checkout-panel">
+
+                <div class="pos-client-card">
+                    <div class="pos-card-heading">
+                        <div>
+                            <span class="pos-section-label">CLIENTE</span>
+                            <h2>Datos del cliente</h2>
+                        </div>
+                        <span class="pos-required-badge">Nombre obligatorio</span>
+                    </div>
+
+                    <div class="pos-field">
+                        <label for="nombreCliente">Nombre del cliente</label>
+                        <input id="nombreCliente"
+                               type="text"
+                               class="pos-input"
+                               maxlength="200"
+                               placeholder="Ej. Juan Pérez"
+                               @bind="NombreCliente" @bind:event="oninput" />
+                    </div>
+
+                    <div class="pos-field">
+                        <label for="rncCliente">RNC <span>Opcional</span></label>
+                        <input id="rncCliente"
+                               type="text"
+                               class="pos-input"
+                               maxlength="20"
+                               placeholder="Ej. 101234567"
+                               @bind="RncCliente" @bind:event="oninput" />
+                        <small>Si queda vacío, el RNC del cliente no aparecerá en la factura.</small>
+                    </div>
+                </div>
+
+                <div class="pos-summary-card">
+                    <div class="pos-card-heading">
+                        <div>
+                            <span class="pos-section-label">RESUMEN</span>
+                            <h2>Total de la venta</h2>
+                        </div>
+                    </div>
+
+                    <div class="pos-totals">
+                        <div>
+                            <span>Subtotal</span>
+                            <strong>RD$ @SubtotalVisible.ToString("N2")</strong>
+                        </div>
+                        <div>
+                            <span>ITBIS</span>
+                            <strong>RD$ @ItbisVisible.ToString("N2")</strong>
+                        </div>
+                        <div>
+                            <span>ISC</span>
+                            <strong>RD$ @IscVisible.ToString("N2")</strong>
+                        </div>
+                        <div class="pos-total-line">
+                            <span>TOTAL</span>
+                            <strong>RD$ @TotalVisible.ToString("N2")</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pos-payment-card">
+                    <div class="pos-card-heading">
+                        <div>
+                            <span class="pos-section-label">COBRO</span>
+                            <h2>Método de pago</h2>
+                        </div>
+                    </div>
+
+                    <div class="pos-payment-methods">
+                        <button type="button"
+                                class="pos-payment-option @(MetodoPago == "Efectivo" ? "selected" : "")"
+                                @onclick='() => SeleccionarMetodoPago("Efectivo")'>
+                            <span class="payment-icon payment-icon-cash" aria-hidden="true">$</span>
+                            <span>Efectivo</span>
+                        </button>
+
+                        <button type="button"
+                                class="pos-payment-option @(MetodoPago == "Tarjeta" ? "selected" : "")"
+                                @onclick='() => SeleccionarMetodoPago("Tarjeta")'>
+                            <span class="payment-icon payment-icon-card" aria-hidden="true">▭</span>
+                            <span>Tarjeta</span>
+                        </button>
+
+                        <button type="button"
+                                class="pos-payment-option @(MetodoPago == "Transferencia" ? "selected" : "")"
+                                @onclick='() => SeleccionarMetodoPago("Transferencia")'>
+                            <span class="payment-icon payment-icon-transfer" aria-hidden="true">↔</span>
+                            <span>Transferencia</span>
+                        </button>
+                    </div>
+
+                    @if (MetodoPago == "Efectivo")
+                    {
+                        <div class="pos-field pos-cash-field">
+                            <label for="montoRecibido">Monto recibido</label>
+                            <input id="montoRecibido"
+                                   type="number"
+                                   min="0"
+                                   step="0.01"
+                                   class="pos-input pos-cash-input"
+                                   @bind="MontoRecibido"
+                                   @bind:event="oninput" />
+
+                            @if (MontoRecibido > 0 && MontoRecibido < TotalVisible)
+                            {
+                                <div class="pos-payment-warning">
+                                    <strong>Pago insuficiente.</strong>
+                                    Faltan RD$ @((TotalVisible - MontoRecibido).ToString("N2"))
+                                    para completar la venta.
+                                </div>
+                            }
+                        </div>
+
+                        <div class="pos-change-box">
+                            <span>Cambio</span>
+                            <strong>RD$ @CambioCalculado.ToString("N2")</strong>
+                        </div>
+                    }
+                </div>
+
+                <button type="button"
+                        class="pos-checkout-button"
+                        @onclick="CobrarVenta"
+                        disabled="@(!PuedeCobrar)">
+                    @if (ProcesandoVenta)
+                    {
+                        <span>Procesando venta...</span>
+                    }
+                    else
+                    {
+                        <span>COBRAR Y FACTURAR</span>
+                        <strong>RD$ @TotalVisible.ToString("N2")</strong>
+                    }
+                </button>
+
+                @if (!string.IsNullOrWhiteSpace(UltimaFactura))
+                {
+                    <div class="pos-last-invoice">
+                        <span>Última factura</span>
+                        <strong>@UltimaFactura</strong>
+
+                        <a
+                            class="pos-print-invoice"
+                            href="@($"/factura/{Uri.EscapeDataString(UltimaFactura)}")"
+                            target="_blank"
+                            rel="noopener">
+                            🖨️ Ver / imprimir
+                        </a>
+                    </div>
+                }
+
+            </aside>
+        </div>
+    }
+</div>
+
+@code {
+    private List<Sucursal> ListaSucursales { get; set; } = new();
+    private int SucursalSeleccionadaId { get; set; }
+
+    private List<InventarioSucursal> ResultadosBusqueda { get; set; } = new();
+    private List<LineaVentaSolicitud> Carrito { get; set; } = new();
+    private Dictionary<int, InventarioSucursal> DatosCarrito { get; } = new();
+
+    private CotizacionVenta Cotizacion { get; set; } = new();
+
+    private string TextoBusqueda { get; set; } = string.Empty;
+    private bool HaBuscado { get; set; }
+
+    private string NombreCliente { get; set; } = string.Empty;
+    private string RncCliente { get; set; } = string.Empty;
+    private string MetodoPago { get; set; } = "Efectivo";
+    private decimal MontoRecibido { get; set; }
+
+    private bool CargandoInicial { get; set; }
+    private bool CargandoSucursales { get; set; }
+    private bool CargandoBusqueda { get; set; }
+    private bool ProcesandoVenta { get; set; }
+
+    private string Mensaje { get; set; } = string.Empty;
+    private bool MensajeExitoso { get; set; }
+    private string UltimaFactura { get; set; } = string.Empty;
+
+    private Sucursal? SucursalSeleccionada =>
+        ListaSucursales.FirstOrDefault(s => s.Id == SucursalSeleccionadaId);
+
+    private bool EsAlcanceGlobal => ContextoUsuarioActual.AlcanceGlobal;
+
+    private int CantidadProductosCarrito => Carrito.Count;
+    private decimal CantidadUnidadesCarrito => Carrito.Sum(x => x.Cantidad);
+
+    private decimal SubtotalVisible =>
+        Cotizacion.Exitoso
+            ? Cotizacion.Subtotal
+            : Carrito.Sum(x => Redondear((DatosCarrito.TryGetValue(x.ProductoId, out var i) ? i.Producto.PrecioVenta : 0m) * x.Cantidad));
+
+    private decimal ItbisVisible => Cotizacion.Exitoso ? Cotizacion.Itbis : 0m;
+    private decimal IscVisible => Cotizacion.Exitoso ? Cotizacion.Isc : 0m;
+
+    private decimal TotalVisible =>
+        Cotizacion.Exitoso
+            ? Cotizacion.Total
+            : SubtotalVisible;
+
+    private decimal CambioCalculado =>
+        MetodoPago == "Efectivo" && MontoRecibido > TotalVisible
+            ? Redondear(MontoRecibido - TotalVisible)
+            : 0m;
+
+    private bool PuedeCobrar =>
+        !ProcesandoVenta &&
+        SucursalSeleccionadaId > 0 &&
+        Carrito.Count > 0 &&
+        !string.IsNullOrWhiteSpace(NombreCliente) &&
+        TotalVisible > 0 &&
+        (
+            MetodoPago != "Efectivo"
+            || MontoRecibido >= TotalVisible
+        );
+protected override async Task OnInitializedAsync()
+    {
+        await CargarInicialAsync();
+    }
+
+    private async Task CargarInicialAsync()
+    {
+        CargandoInicial = true;
+        CargandoSucursales = true;
+
+        try
+        {
+            ListaSucursales = (await VentaService.ObtenerSucursalesParaVentaAsync()).ToList();
+
+            if (ListaSucursales.Count > 0)
+            {
+                SucursalSeleccionadaId = ListaSucursales[0].Id;
+            }
+            else
+            {
+                MostrarMensaje(false, "El usuario actual no tiene una sucursal autorizada para vender.");
+            }
+        }
+        catch (Exception ex)
+        {
+            MostrarMensaje(false, $"No fue posible preparar el Punto de Venta: {ex.Message}");
+        }
+        finally
+        {
+            CargandoSucursales = false;
+            CargandoInicial = false;
+        }
+    }
+
+    private async Task CambioSucursal()
+    {
+        Carrito.Clear();
+        DatosCarrito.Clear();
+        ResultadosBusqueda.Clear();
+        TextoBusqueda = string.Empty;
+        HaBuscado = false;
+        MontoRecibido = 0;
+        UltimaFactura = string.Empty;
+        Cotizacion = new CotizacionVenta();
+        LimpiarMensaje();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task CambiarTextoBusqueda(ChangeEventArgs e)
+    {
+        TextoBusqueda = e.Value?.ToString() ?? string.Empty;
+        var texto = TextoBusqueda.Trim();
+
+        if (texto.Length == 0)
+        {
+            ResultadosBusqueda.Clear();
+            HaBuscado = false;
+            CargandoBusqueda = false;
+            await InvokeAsync(StateHasChanged);
+            return;
+        }
+
+        await BuscarProductoAsync(agregarCodigoExacto: false);
+    }
+
+    private async Task ProcesarBusquedaKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            await BuscarProductoAsync(agregarCodigoExacto: true);
+        }
+    }
+
+    private async Task BuscarProductoAsync(bool agregarCodigoExacto)
+    {
+        if (SucursalSeleccionadaId <= 0)
+        {
+            MostrarMensaje(false, "Debes seleccionar una sucursal.");
+            return;
+        }
+
+        var texto = TextoBusqueda.Trim();
+
+        if (string.IsNullOrWhiteSpace(texto))
+        {
+            ResultadosBusqueda.Clear();
+            HaBuscado = false;
+            return;
+        }
+
+        CargandoBusqueda = true;
+        HaBuscado = true;
+
+        try
+        {
+            var resultados = await VentaService.BuscarProductosDisponiblesAsync(
+                SucursalSeleccionadaId,
+                texto,
+                30);
+
+            ResultadosBusqueda = resultados.ToList();
+
+            if (agregarCodigoExacto)
+            {
+                var coincidencia = ResultadosBusqueda.FirstOrDefault(x =>
+                    string.Equals(x.Producto.Codigo.Trim(), texto, StringComparison.OrdinalIgnoreCase));
+
+                if (coincidencia is not null)
+                {
+                    await AgregarProducto(coincidencia);
+                    return;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            MostrarMensaje(false, $"No fue posible buscar productos: {ex.Message}");
+        }
+        finally
+        {
+            CargandoBusqueda = false;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private async Task AgregarProducto(InventarioSucursal inventario)
+    {
+        if (inventario.Cantidad <= 0 || !inventario.Producto.Activo)
+        {
+            MostrarMensaje(false, "Ese producto no está disponible para venta.");
+            return;
+        }
+
+        DatosCarrito[inventario.ProductoId] = inventario;
+
+        var existente = Carrito.FirstOrDefault(x => x.ProductoId == inventario.ProductoId);
+
+        if (existente is null)
+        {
+            Carrito.Add(new LineaVentaSolicitud
+            {
+                ProductoId = inventario.ProductoId,
+                Cantidad = 1
+            });
+        }
+        else if (existente.Cantidad + 1 <= inventario.Cantidad)
+        {
+            existente.Cantidad++;
+        }
+        else
+        {
+            MostrarMensaje(false,
+                $"No puedes agregar más unidades de '{inventario.Producto.Nombre}'. Disponible: {inventario.Cantidad:N2}.");
+            return;
+        }
+
+        TextoBusqueda = string.Empty;
+        ResultadosBusqueda.Clear();
+        HaBuscado = false;
+        LimpiarMensaje();
+
+        await RecalcularCotizacionAsync();
+    }
+
+    private async Task CambiarCantidad(int productoId, decimal cambio)
+    {
+        var linea = Carrito.FirstOrDefault(x => x.ProductoId == productoId);
+        if (linea is null)
+            return;
+
+        var inventario = await ObtenerInventarioActualAsync(productoId);
+
+        if (inventario is null)
+        {
+            Carrito.Remove(linea);
+            DatosCarrito.Remove(productoId);
+            await RecalcularCotizacionAsync();
+            MostrarMensaje(false, "El producto ya no está disponible en esta sucursal.");
+            return;
+        }
+
+        var nuevaCantidad = linea.Cantidad + cambio;
+
+        if (nuevaCantidad <= 0)
+        {
+            Carrito.Remove(linea);
+            DatosCarrito.Remove(productoId);
+            await RecalcularCotizacionAsync();
+            return;
+        }
+
+        if (nuevaCantidad > inventario.Cantidad)
+        {
+            MostrarMensaje(false, $"Existencia insuficiente. Disponible: {inventario.Cantidad:N2}.");
+            return;
+        }
+
+        DatosCarrito[productoId] = inventario;
+        linea.Cantidad = nuevaCantidad;
+        await RecalcularCotizacionAsync();
+    }
+
+    private async Task CambiarCantidadTexto(int productoId, string? valor)
+    {
+        if (!decimal.TryParse(valor, NumberStyles.Number, CultureInfo.InvariantCulture, out var cantidad) &&
+            !decimal.TryParse(valor, NumberStyles.Number, CultureInfo.CurrentCulture, out cantidad))
+        {
+            MostrarMensaje(false, "La cantidad indicada no es válida.");
+            return;
+        }
+
+        if (cantidad <= 0)
+        {
+            await CambiarCantidad(productoId, -decimal.MaxValue);
+            return;
+        }
+
+        var linea = Carrito.FirstOrDefault(x => x.ProductoId == productoId);
+        if (linea is null)
+            return;
+
+        var inventario = await ObtenerInventarioActualAsync(productoId);
+
+        if (inventario is null)
+        {
+            Carrito.Remove(linea);
+            DatosCarrito.Remove(productoId);
+            await RecalcularCotizacionAsync();
+            return;
+        }
+
+        if (cantidad > inventario.Cantidad)
+        {
+            MostrarMensaje(false, $"Existencia insuficiente. Disponible: {inventario.Cantidad:N2}.");
+            return;
+        }
+
+        DatosCarrito[productoId] = inventario;
+        linea.Cantidad = Math.Round(cantidad, 3, MidpointRounding.AwayFromZero);
+        await RecalcularCotizacionAsync();
+    }
+
+    private async Task<InventarioSucursal?> ObtenerInventarioActualAsync(int productoId)
+    {
+        return await VentaService.ObtenerProductoDisponibleAsync(
+            productoId,
+            SucursalSeleccionadaId);
+    }
+
+    private async Task QuitarProducto(int productoId)
+    {
+        Carrito.RemoveAll(x => x.ProductoId == productoId);
+        DatosCarrito.Remove(productoId);
+        await RecalcularCotizacionAsync();
+        LimpiarMensaje();
+    }
+
+    private async Task RecalcularCotizacionAsync()
+    {
+        if (SucursalSeleccionadaId <= 0 || Carrito.Count == 0)
+        {
+            Cotizacion = new CotizacionVenta();
+            await InvokeAsync(StateHasChanged);
+            return;
+        }
+
+        try
+        {
+            Cotizacion = await VentaService.CalcularCotizacionAsync(
+                SucursalSeleccionadaId,
+                Carrito);
+        }
+        catch (Exception ex)
+        {
+            Cotizacion = new CotizacionVenta
+            {
+                Exitoso = false,
+                Mensaje = ex.Message
+            };
+        }
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private void SeleccionarMetodoPago(string metodo)
+    {
+        MetodoPago = metodo;
+
+        if (metodo != "Efectivo")
+        {
+            MontoRecibido = 0;
+        }
+    }
+
+    private async Task CobrarVenta()
+    {
+        if (ProcesandoVenta)
+            return;
+
+        if (!PuedeCobrar)
+        {
+            MostrarMensaje(false, ObtenerMotivoBloqueoCobro());
+            return;
+        }
+
+        ProcesandoVenta = true;
+
+        try
+        {
+            var resultado = await VentaService.RegistrarVentaAsync(
+                SucursalSeleccionadaId,
+                NombreCliente,
+                RncCliente,
+                Carrito,
+                MetodoPago,
+                MetodoPago == "Efectivo" ? MontoRecibido : null);
+
+            MostrarMensaje(resultado.Exitoso, resultado.Mensaje);
+
+            if (resultado.Exitoso)
+            {
+                UltimaFactura = resultado.NumeroFactura ?? string.Empty;
+                Carrito.Clear();
+                DatosCarrito.Clear();
+                NombreCliente = string.Empty;
+                RncCliente = string.Empty;
+                MontoRecibido = 0;
+                TextoBusqueda = string.Empty;
+                ResultadosBusqueda.Clear();
+                HaBuscado = false;
+                Cotizacion = new CotizacionVenta();
+            }
+        }
+        catch (Exception ex)
+        {
+            MostrarMensaje(false, $"Ocurrió un error al registrar la venta: {ex.Message}");
+        }
+        finally
+        {
+            ProcesandoVenta = false;
+        }
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private string ObtenerMotivoBloqueoCobro()
+    {
+        if (SucursalSeleccionadaId <= 0)
+            return "Selecciona una sucursal.";
+
+        if (Carrito.Count == 0)
+            return "Agrega al menos un producto.";
+
+        if (string.IsNullOrWhiteSpace(NombreCliente))
+            return "Indica el nombre del cliente.";
+
+        if (TotalVisible <= 0)
+            return "El total de la venta debe ser mayor que cero.";
+
+        if (MetodoPago == "Efectivo" && MontoRecibido < TotalVisible)
+        {
+            var faltante = Redondear(TotalVisible - MontoRecibido);
+            return $"La cantidad recibida es menor. Faltan RD$ {faltante:N2} por pagar.";
+        }
+
+        return "La venta no puede procesarse en este momento.";
+    }
+private InventarioSucursal? ObtenerDatosCarrito(int productoId)
+    {
+        return DatosCarrito.TryGetValue(productoId, out var inventario)
+            ? inventario
+            : null;
+    }
+
+    private static string? ObtenerImagenUrl(Producto producto)
+    {
+        if (!string.IsNullOrWhiteSpace(producto.ImagenUrl))
+            return producto.ImagenUrl.Trim();
+
+        var codigo = new string((producto.Codigo ?? string.Empty).Where(char.IsDigit).ToArray());
+
+        if (codigo.Length < 8)
+            return null;
+
+        var grupos = new[]
+        {
+            codigo.Length >= 3 ? codigo[..3] : "0",
+            codigo.Length >= 6 ? codigo.Substring(3, 3) : "0",
+            codigo.Length >= 9 ? codigo.Substring(6, 3) : "0",
+            codigo.Length > 9 ? codigo[9..] : codigo
+        };
+
+        return $"https://images.openfoodfacts.org/images/products/{string.Join("/", grupos)}/front_en.400.jpg";
+    }
+
+
+    private static decimal Redondear(decimal valor) =>
+        Math.Round(valor, 2, MidpointRounding.AwayFromZero);
+
+    private void MostrarMensaje(bool exitoso, string mensaje)
+    {
+        MensajeExitoso = exitoso;
+        Mensaje = mensaje;
+    }
+
+    private void LimpiarMensaje()
+    {
+        Mensaje = string.Empty;
+        MensajeExitoso = false;
+    }
+}
+
+
+

@@ -18,6 +18,8 @@
     <Compile Include="Entidades\Producto.cs" />
     <Compile Include="Entidades\ClasificacionFiscal.cs" />
     <Compile Include="Entidades\ReglaImpuesto.cs" />
+    <Compile Include="Entidades\Venta.cs" />
+    <Compile Include="Entidades\VentaDetalle.cs" />
     <Compile Include="Entidades\Rol.cs" />
     <Compile Include="Entidades\RolPermiso.cs" />
     <Compile Include="Entidades\Sucursal.cs" />
@@ -26,3 +28,4 @@
   </ItemGroup>
 
 </Project>
+

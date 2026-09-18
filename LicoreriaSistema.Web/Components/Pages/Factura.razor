@@ -1,0 +1,379 @@
+﻿@page "/factura/{NumeroFactura}"
+
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Policy = "Permiso:VENTAS_CONSULTAR")]
+
+@rendermode InteractiveServer
+
+@using LicoreriaSistema.Dominio.Entidades
+@using LibreriaSistema.Aplicacion.Servicios
+@using Microsoft.JSInterop
+
+@inject VentaService VentaService
+@inject IJSRuntime JS
+@inject NavigationManager Navigation
+
+<PageTitle>
+    Factura @NumeroFactura
+</PageTitle>
+
+<HeadContent>
+    <link rel="stylesheet"
+          href="/css/factura-print.css"
+          media="print" />
+</HeadContent>
+
+@if (Cargando)
+{
+    <div class="factura-page">
+        <div class="factura-loading">
+            Cargando factura...
+        </div>
+    </div>
+}
+else if (Venta is null)
+{
+    <div class="factura-page">
+        <div class="factura-not-found">
+
+            <h1>Factura no encontrada</h1>
+
+            <p>
+                No fue posible localizar la factura solicitada
+                o no tienes acceso a ella.
+            </p>
+
+            <button
+                type="button"
+                class="factura-secondary-button"
+                @onclick="Volver">
+                Volver al punto de venta
+            </button>
+
+        </div>
+    </div>
+}
+else
+{
+    <div class="factura-page">
+
+        <div class="factura-actions no-print">
+
+            <button
+                type="button"
+                class="factura-print-button"
+                @onclick="Imprimir">
+                🖨️ Imprimir factura
+            </button>
+
+            <button
+                type="button"
+                class="factura-secondary-button"
+                @onclick="Volver">
+                Volver
+            </button>
+
+        </div>
+
+        <article class="factura-document">
+
+            <!-- ==================================================
+                 ENCABEZADO
+                 ================================================== -->
+
+            <header class="factura-header">
+
+                <div class="factura-emisor">
+
+                    <h1>
+                        @Venta.NombreComercialEmisor
+                    </h1>
+
+                    <p>
+                        @Venta.NombreSucursalEmisor
+                    </p>
+
+                    <p>
+                        @Venta.DireccionSucursalEmisor
+                    </p>
+
+                    @if (!string.IsNullOrWhiteSpace(
+                            Venta.TelefonoSucursalEmisor))
+                    {
+                        <p>
+                            Tel. @Venta.TelefonoSucursalEmisor
+                        </p>
+                    }
+
+                    <p>
+                        RNC: @Venta.RncEmisor
+                    </p>
+
+                </div>
+
+                <div class="factura-identificacion">
+
+                    <span>
+                        FACTURA
+                    </span>
+
+                    <strong>
+                        @Venta.NumeroFactura
+                    </strong>
+
+                    <small>
+                        @Venta.Fecha.ToString("dd/MM/yyyy HH:mm")
+                    </small>
+
+                </div>
+
+            </header>
+
+            <!-- ==================================================
+                 CLIENTE
+                 ================================================== -->
+
+            <section class="factura-cliente">
+
+                <div>
+                    <span>
+                        CLIENTE
+                    </span>
+
+                    <strong>
+                        @Venta.NombreCliente
+                    </strong>
+                </div>
+
+                <div>
+                    <span>
+                        RNC
+                    </span>
+
+                    <strong>
+                        @(string.IsNullOrWhiteSpace(Venta.RncCliente)
+                            ? "Consumidor final"
+                            : Venta.RncCliente)
+                    </strong>
+                </div>
+
+            </section>
+
+            <!-- ==================================================
+                 DETALLE
+                 ================================================== -->
+
+            <section class="factura-detalle">
+
+                <table>
+
+                    <thead>
+
+                        <tr>
+                            <th>Cant.</th>
+                            <th>Producto</th>
+                            <th>Precio</th>
+                            <th>Total</th>
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        @foreach (var detalle in Venta.Detalles)
+                        {
+                            <tr>
+
+                                <td class="factura-cantidad">
+                                    @detalle.Cantidad.ToString("N2")
+                                </td>
+
+                                <td>
+
+                                    <strong>
+                                        @detalle.NombreProducto
+                                    </strong>
+
+                                    <small>
+                                        @detalle.CodigoProducto
+                                    </small>
+
+                                </td>
+
+                                <td class="factura-number">
+                                    RD$ @detalle.PrecioUnitario.ToString("N2")
+                                </td>
+
+                                <td class="factura-number">
+                                    RD$ @detalle.Total.ToString("N2")
+                                </td>
+
+                            </tr>
+                        }
+
+                    </tbody>
+
+                </table>
+
+            </section>
+
+            <!-- ==================================================
+                 IMPUESTOS Y TOTAL
+                 ================================================== -->
+
+            <section class="factura-resumen">
+
+                <div class="factura-totales">
+
+                    <div>
+                        <span>
+                            Base imponible
+                        </span>
+
+                        <strong>
+                            RD$ @Venta.Subtotal.ToString("N2")
+                        </strong>
+                    </div>
+
+                    <div>
+                        <span>
+                            ITBIS
+                        </span>
+
+                        <strong>
+                            RD$ @Venta.Itbis.ToString("N2")
+                        </strong>
+                    </div>
+
+                    <div>
+                        <span>
+                            ISC
+                        </span>
+
+                        <strong>
+                            RD$ @Venta.Isc.ToString("N2")
+                        </strong>
+                    </div>
+
+                    <div class="factura-total">
+
+                        <span>
+                            TOTAL
+                        </span>
+
+                        <strong>
+                            RD$ @Venta.Total.ToString("N2")
+                        </strong>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+            <!-- ==================================================
+                 PAGO
+                 ================================================== -->
+
+            <section class="factura-pago">
+
+                <div>
+
+                    <span>
+                        Método de pago
+                    </span>
+
+                    <strong>
+                        @Venta.MetodoPago
+                    </strong>
+
+                </div>
+
+                @if (Venta.MontoRecibido.HasValue)
+                {
+                    <div>
+
+                        <span>
+                            Monto recibido
+                        </span>
+
+                        <strong>
+                            RD$ @Venta.MontoRecibido.Value.ToString("N2")
+                        </strong>
+
+                    </div>
+                }
+
+                @if (Venta.Cambio.HasValue)
+                {
+                    <div>
+
+                        <span>
+                            Cambio
+                        </span>
+
+                        <strong>
+                            RD$ @Venta.Cambio.Value.ToString("N2")
+                        </strong>
+
+                    </div>
+                }
+
+            </section>
+
+            <footer class="factura-footer">
+
+                <strong>
+                    Gracias por su compra
+                </strong>
+
+                <small>
+                    Comprobante interno del sistema.
+                </small>
+
+            </footer>
+
+        </article>
+
+    </div>
+}
+
+@code {
+
+    [Parameter]
+    public string NumeroFactura { get; set; } = string.Empty;
+
+    private Venta? Venta { get; set; }
+
+    private bool Cargando { get; set; } = true;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        Cargando = true;
+
+        try
+        {
+            Venta =
+                await VentaService.ObtenerPorNumeroFacturaAsync(
+                    NumeroFactura);
+        }
+        catch
+        {
+            Venta = null;
+        }
+        finally
+        {
+            Cargando = false;
+        }
+    }
+
+    private async Task Imprimir()
+    {
+        await JS.InvokeVoidAsync("window.print");
+    }
+
+    private void Volver()
+    {
+        Navigation.NavigateTo("/punto-de-venta");
+    }
+}
+
