@@ -79,3 +79,18 @@ public sealed class ResultadoVenta
     public decimal Cambio { get; init; }
 }
 
+
+public sealed class FiltroHistorialVentas
+{
+    public DateTime? Desde { get; set; }
+
+    public DateTime? Hasta { get; set; }
+
+    public int? SucursalId { get; set; }
+
+    public string? NumeroFactura { get; set; }
+
+    public string? Cliente { get; set; }
+
+    public string? MetodoPago { get; set; }
+}

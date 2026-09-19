@@ -962,7 +962,55 @@ public sealed class VentaService
 
         return venta;
     }
+
+    public async Task<IReadOnlyList<Venta>> ObtenerHistorialAsync(
+        FiltroHistorialVentas filtro,
+        CancellationToken cancellationToken = default)
+    {
+        if (!_contextoUsuarioActual.EstaAutenticado)
+        {
+            throw new UnauthorizedAccessException(
+                "Debes iniciar sesión para consultar el historial de ventas.");
+        }
+
+        if (!_contextoUsuarioActual.TienePermiso(
+                PermisosSistema.VentasConsultar))
+        {
+            throw new UnauthorizedAccessException(
+                "No tienes permiso para consultar el historial de ventas.");
+        }
+
+        filtro ??= new FiltroHistorialVentas();
+
+        // Si el usuario selecciona una sucursal específica,
+        // primero verificamos que tenga acceso a ella.
+        if (filtro.SucursalId.HasValue &&
+            filtro.SucursalId.Value > 0 &&
+            !_contextoUsuarioActual.AlcanceGlobal &&
+            !_contextoUsuarioActual.PuedeAccederASucursal(
+                filtro.SucursalId.Value))
+        {
+            throw new UnauthorizedAccessException(
+                "No tienes acceso a la sucursal seleccionada.");
+        }
+
+        IReadOnlyCollection<int>? sucursalesPermitidas = null;
+
+        // Los usuarios con alcance global pueden consultar
+        // las ventas de todas las sucursales.
+        if (!_contextoUsuarioActual.AlcanceGlobal)
+        {
+            sucursalesPermitidas =
+                _contextoUsuarioActual.SucursalIds;
+        }
+
+        return await _ventaRepository.BuscarHistorialAsync(
+            filtro,
+            sucursalesPermitidas,
+            cancellationToken);
+    }
 }
+
 
 
 

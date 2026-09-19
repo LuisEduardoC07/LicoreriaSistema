@@ -1,4 +1,5 @@
-﻿using LibreriaSistema.Aplicacion.Interfaces;
+﻿using LibreriaSistema.Aplicacion.Modelos;
+using LibreriaSistema.Aplicacion.Interfaces;
 using LicoreriaSistema.Datos.Context;
 using LicoreriaSistema.Dominio.Entidades;
 using Microsoft.EntityFrameworkCore;
@@ -325,6 +326,101 @@ venta.NumeroFactura = $"TMP-{Random.Shared.Next(10000000, 99999999)}";
                 v => v.NumeroFactura == numero,
                 cancellationToken);
     }
+
+    public async Task<IReadOnlyList<Venta>> BuscarHistorialAsync(
+        FiltroHistorialVentas filtro,
+        IReadOnlyCollection<int>? sucursalesPermitidas = null,
+        CancellationToken cancellationToken = default)
+    {
+        filtro ??= new FiltroHistorialVentas();
+
+        var consulta = _context.Ventas
+            .AsNoTracking()
+            .AsQueryable();
+
+        // DESDE: incluye todo el día seleccionado.
+        if (filtro.Desde.HasValue)
+        {
+            var desde = filtro.Desde.Value.Date;
+
+            consulta = consulta.Where(v =>
+                v.Fecha >= desde);
+        }
+
+        // HASTA: incluye todo el día seleccionado.
+        // Se utiliza el día siguiente como límite exclusivo.
+        if (filtro.Hasta.HasValue)
+        {
+            var hastaExclusivo =
+                filtro.Hasta.Value.Date.AddDays(1);
+
+            consulta = consulta.Where(v =>
+                v.Fecha < hastaExclusivo);
+        }
+
+        // Sucursal específica seleccionada.
+        if (filtro.SucursalId.HasValue &&
+            filtro.SucursalId.Value > 0)
+        {
+            consulta = consulta.Where(v =>
+                v.SucursalId == filtro.SucursalId.Value);
+        }
+
+        // Sucursales permitidas para el usuario.
+        if (sucursalesPermitidas is not null)
+        {
+            if (sucursalesPermitidas.Count == 0)
+            {
+                return Array.Empty<Venta>();
+            }
+
+            consulta = consulta.Where(v =>
+                sucursalesPermitidas.Contains(v.SucursalId));
+        }
+
+        // Número de factura.
+        if (!string.IsNullOrWhiteSpace(filtro.NumeroFactura))
+        {
+            var numeroFactura =
+                filtro.NumeroFactura.Trim();
+
+            consulta = consulta.Where(v =>
+                v.NumeroFactura.Contains(numeroFactura));
+        }
+
+        // Nombre del cliente o RNC.
+        if (!string.IsNullOrWhiteSpace(filtro.Cliente))
+        {
+            var cliente =
+                filtro.Cliente.Trim();
+
+            consulta = consulta.Where(v =>
+                v.NombreCliente.Contains(cliente) ||
+                (v.RncCliente != null &&
+                 v.RncCliente.Contains(cliente)));
+        }
+
+        // Método de pago.
+        if (!string.IsNullOrWhiteSpace(filtro.MetodoPago))
+        {
+            var metodoPago =
+                filtro.MetodoPago.Trim();
+
+            consulta = consulta.Where(v =>
+                v.MetodoPago == metodoPago);
+        }
+
+        // Más reciente -> más antigua.
+        return await consulta
+            .Include(v => v.Usuario)
+            .Include(v => v.Sucursal)
+            .Include(v => v.Detalles)
+                .ThenInclude(d => d.Producto)
+            .OrderByDescending(v => v.Fecha)
+            .ThenByDescending(v => v.Id)
+            .ToListAsync(cancellationToken);
+    }
 }
+
 
 

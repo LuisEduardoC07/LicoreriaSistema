@@ -1,0 +1,1048 @@
+@page "/historial-ventas"
+
+@attribute [Authorize]
+@rendermode InteractiveServer
+
+@using LicoreriaSistema.Dominio.Entidades
+@using LibreriaSistema.Aplicacion.Modelos
+@using LibreriaSistema.Aplicacion.Servicios
+@using LibreriaSistema.Aplicacion.Interfaces
+
+@inject VentaService VentaService
+@inject IContextoUsuarioActual ContextoUsuarioActual
+
+<PageTitle>Historial de Ventas</PageTitle>
+
+<div class="historial-page">
+
+    <header class="historial-header">
+        <div>
+            <span class="historial-eyebrow">OPERACIONES</span>
+            <h1>Historial de Ventas</h1>
+            <p>
+                Consulta las transacciones realizadas y revisa el detalle de cada factura.
+            </p>
+        </div>
+
+        <a href="/punto-de-venta" class="historial-new-sale">
+            + Nueva venta
+        </a>
+    </header>
+
+    @if (!string.IsNullOrWhiteSpace(Mensaje))
+    {
+        <div class="historial-alert @(MensajeEsError ? "historial-alert-error" : "historial-alert-success")">
+            <span>@Mensaje</span>
+
+            <button type="button"
+                    @onclick="LimpiarMensaje"
+                    aria-label="Cerrar">
+                ×
+            </button>
+        </div>
+    }
+
+    <section class="historial-filter-card">
+
+        <div class="historial-section-heading">
+            <div>
+                <span class="historial-section-label">CONSULTA</span>
+                <h2>Filtrar ventas</h2>
+            </div>
+
+            <span class="historial-sort-info">
+                Más recientes primero
+            </span>
+        </div>
+
+        <div class="historial-filter-grid">
+
+            <div class="historial-field">
+                <label for="desde">Desde</label>
+
+                <InputDate id="desde"
+                           TValue="DateTime?"
+                           class="historial-input"
+                           @bind-Value="Filtro.Desde" />
+            </div>
+
+            <div class="historial-field">
+                <label for="hasta">Hasta</label>
+
+                <InputDate id="hasta"
+                           TValue="DateTime?"
+                           class="historial-input"
+                           @bind-Value="Filtro.Hasta" />
+            </div>
+
+            <div class="historial-field">
+                <label for="factura">Número de factura</label>
+
+                <InputText id="factura"
+                           class="historial-input"
+                           @bind-Value="Filtro.NumeroFactura"
+                           placeholder="Ej. FAC-20260919" />
+            </div>
+
+            <div class="historial-field">
+                <label for="cliente">Cliente / RNC</label>
+
+                <InputText id="cliente"
+                           class="historial-input"
+                           @bind-Value="Filtro.Cliente"
+                           placeholder="Nombre o RNC" />
+            </div>
+
+            <div class="historial-field">
+                <label for="metodoPago">Método de pago</label>
+
+                <InputSelect id="metodoPago"
+                             class="historial-input"
+                             @bind-Value="Filtro.MetodoPago">
+
+                    <option value="">Todos</option>
+                    <option value="Efectivo">Efectivo</option>
+                    <option value="Tarjeta">Tarjeta</option>
+                    <option value="Transferencia">Transferencia</option>
+
+                </InputSelect>
+            </div>
+
+        </div>
+
+        <div class="historial-filter-actions">
+
+            <button type="button"
+                    class="historial-button-primary"
+                    @onclick="BuscarAsync"
+                    disabled="@Cargando">
+
+                @if (Cargando)
+                {
+                    <span class="spinner-border spinner-border-sm me-2"></span>
+                    <span>Buscando...</span>
+                }
+                else
+                {
+                    <span>Buscar ventas</span>
+                }
+
+            </button>
+
+            <button type="button"
+                    class="historial-button-secondary"
+                    @onclick="LimpiarAsync"
+                    disabled="@Cargando">
+
+                Limpiar filtros
+
+            </button>
+
+        </div>
+
+    </section>
+
+    <section class="historial-results-card">
+
+        <div class="historial-results-header">
+
+            <div>
+                <span class="historial-section-label">RESULTADOS</span>
+                <h2>Ventas realizadas</h2>
+            </div>
+
+            <div class="historial-results-count">
+                @Ventas.Count venta(s)
+            </div>
+
+        </div>
+
+        @if (Cargando)
+        {
+            <div class="historial-loading">
+
+                <div class="spinner-border" role="status"></div>
+
+                <strong>Cargando historial...</strong>
+
+                <span>
+                    Estamos consultando las transacciones.
+                </span>
+
+            </div>
+        }
+        else if (Ventas.Count == 0)
+        {
+            <div class="historial-empty">
+
+                <div class="historial-empty-icon">
+                    $
+                </div>
+
+                <h3>No hay ventas para mostrar</h3>
+
+                <p>
+                    Prueba cambiando el rango de fechas o alguno de los filtros.
+                </p>
+
+            </div>
+        }
+        else
+        {
+            <div class="historial-table-wrapper">
+
+                <table class="historial-table">
+
+                    <thead>
+                        <tr>
+                            <th>Factura</th>
+                            <th>Fecha</th>
+                            <th>Cliente</th>
+                            <th>Sucursal</th>
+                            <th>Cajero</th>
+                            <th>Pago</th>
+                            <th class="text-end">Subtotal</th>
+                            <th class="text-end">ITBIS</th>
+                            <th class="text-end">ISC</th>
+                            <th class="text-end">Total</th>
+                            <th>Estado</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        @foreach (var venta in Ventas)
+                        {
+                            <tr>
+
+                                <td>
+                                    <strong class="historial-invoice">
+                                        @venta.NumeroFactura
+                                    </strong>
+                                </td>
+
+                                <td>
+                                    <div class="historial-date">
+                                        @venta.Fecha.ToString("dd/MM/yyyy")
+                                    </div>
+
+                                    <small>
+                                        @venta.Fecha.ToString("HH:mm:ss")
+                                    </small>
+                                </td>
+
+                                <td>
+                                    <div class="historial-client">
+                                        @venta.NombreCliente
+                                    </div>
+
+                                    @if (!string.IsNullOrWhiteSpace(venta.RncCliente))
+                                    {
+                                        <small>
+                                            RNC: @venta.RncCliente
+                                        </small>
+                                    }
+                                </td>
+
+                                <td>
+                                    @venta.Sucursal.Nombre
+                                </td>
+
+                                <td>
+                                    @venta.Usuario.Nombre
+                                    @venta.Usuario.Apellido
+                                </td>
+
+                                <td>
+                                    <span class="historial-payment">
+                                        @venta.MetodoPago
+                                    </span>
+                                </td>
+
+                                <td class="text-end">
+                                    RD$ @venta.Subtotal.ToString("N2")
+                                </td>
+
+                                <td class="text-end">
+                                    RD$ @venta.Itbis.ToString("N2")
+                                </td>
+
+                                <td class="text-end">
+                                    RD$ @venta.Isc.ToString("N2")
+                                </td>
+
+                                <td class="text-end">
+                                    <strong>
+                                        RD$ @venta.Total.ToString("N2")
+                                    </strong>
+                                </td>
+
+                                <td>
+                                    @if (string.Equals(
+                                        venta.Estado,
+                                        "Completada",
+                                        StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        <span class="historial-status historial-status-success">
+                                            Completada
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="historial-status">
+                                            @venta.Estado
+                                        </span>
+                                    }
+                                </td>
+
+                                <td class="text-end">
+
+                                    <button type="button"
+                                            class="historial-detail-button"
+                                            @onclick="() => VerDetalle(venta)">
+                                        Ver detalle
+                                    </button>
+
+                                </td>
+
+                            </tr>
+                        }
+
+                    </tbody>
+
+                </table>
+
+            </div>
+        }
+
+    </section>
+
+</div>
+
+@if (VentaSeleccionada is not null)
+{
+    <div class="historial-modal-backdrop">
+
+        <div class="historial-modal">
+
+            <div class="historial-modal-header">
+
+                <div>
+                    <span class="historial-section-label">DETALLE DE VENTA</span>
+
+                    <h2>
+                        @VentaSeleccionada.NumeroFactura
+                    </h2>
+
+                    <p>
+                        @VentaSeleccionada.Fecha.ToString("dd/MM/yyyy HH:mm:ss")
+                    </p>
+                </div>
+
+                <button type="button"
+                        class="historial-modal-close"
+                        @onclick="CerrarDetalle">
+                    ×
+                </button>
+
+            </div>
+
+            <div class="historial-modal-body">
+
+                <div class="historial-detail-grid">
+
+                    <div>
+                        <span>Cliente</span>
+                        <strong>
+                            @VentaSeleccionada.NombreCliente
+                        </strong>
+                    </div>
+
+                    <div>
+                        <span>RNC</span>
+                        <strong>
+                            @(string.IsNullOrWhiteSpace(VentaSeleccionada.RncCliente)
+                                ? "No indicado"
+                                : VentaSeleccionada.RncCliente)
+                        </strong>
+                    </div>
+
+                    <div>
+                        <span>Sucursal</span>
+                        <strong>
+                            @VentaSeleccionada.Sucursal.Nombre
+                        </strong>
+                    </div>
+
+                    <div>
+                        <span>Cajero</span>
+                        <strong>
+                            @VentaSeleccionada.Usuario.Nombre
+                            @VentaSeleccionada.Usuario.Apellido
+                        </strong>
+                    </div>
+
+                    <div>
+                        <span>Método de pago</span>
+                        <strong>
+                            @VentaSeleccionada.MetodoPago
+                        </strong>
+                    </div>
+
+                    <div>
+                        <span>Estado</span>
+                        <strong>
+                            @VentaSeleccionada.Estado
+                        </strong>
+                    </div>
+
+                </div>
+
+                <div class="historial-detail-table-wrapper">
+
+                    <table class="historial-detail-table">
+
+                        <thead>
+                            <tr>
+                                <th>Código</th>
+                                <th>Producto</th>
+                                <th class="text-end">Cantidad</th>
+                                <th class="text-end">Precio</th>
+                                <th class="text-end">ITBIS</th>
+                                <th class="text-end">ISC</th>
+                                <th class="text-end">Total</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+
+                            @foreach (var detalle in VentaSeleccionada.Detalles)
+                            {
+                                <tr>
+
+                                    <td>
+                                        @detalle.CodigoProducto
+                                    </td>
+
+                                    <td>
+                                        <strong>
+                                            @detalle.NombreProducto
+                                        </strong>
+                                    </td>
+
+                                    <td class="text-end">
+                                        @detalle.Cantidad.ToString("N3")
+                                    </td>
+
+                                    <td class="text-end">
+                                        RD$ @detalle.PrecioUnitario.ToString("N2")
+                                    </td>
+
+                                    <td class="text-end">
+                                        RD$ @detalle.Itbis.ToString("N2")
+                                    </td>
+
+                                    <td class="text-end">
+                                        RD$ @detalle.Isc.ToString("N2")
+                                    </td>
+
+                                    <td class="text-end">
+                                        <strong>
+                                            RD$ @detalle.Total.ToString("N2")
+                                        </strong>
+                                    </td>
+
+                                </tr>
+                            }
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+                <div class="historial-totals">
+
+                    <div>
+                        <span>Subtotal</span>
+                        <strong>
+                            RD$ @VentaSeleccionada.Subtotal.ToString("N2")
+                        </strong>
+                    </div>
+
+                    <div>
+                        <span>ITBIS</span>
+                        <strong>
+                            RD$ @VentaSeleccionada.Itbis.ToString("N2")
+                        </strong>
+                    </div>
+
+                    <div>
+                        <span>ISC</span>
+                        <strong>
+                            RD$ @VentaSeleccionada.Isc.ToString("N2")
+                        </strong>
+                    </div>
+
+                    <div class="historial-grand-total">
+                        <span>Total</span>
+                        <strong>
+                            RD$ @VentaSeleccionada.Total.ToString("N2")
+                        </strong>
+                    </div>
+
+                    @if (VentaSeleccionada.MontoRecibido.HasValue)
+                    {
+                        <div>
+                            <span>Monto recibido</span>
+                            <strong>
+                                RD$ @VentaSeleccionada.MontoRecibido.Value.ToString("N2")
+                            </strong>
+                        </div>
+                    }
+
+                    @if (VentaSeleccionada.Cambio.HasValue)
+                    {
+                        <div>
+                            <span>Cambio</span>
+                            <strong>
+                                RD$ @VentaSeleccionada.Cambio.Value.ToString("N2")
+                            </strong>
+                        </div>
+                    }
+
+                </div>
+
+            </div>
+
+            <div class="historial-modal-footer">
+
+                <a class="historial-invoice-link"
+                   href="@($"/factura/{Uri.EscapeDataString(VentaSeleccionada.NumeroFactura)}")"
+                   target="_blank"
+                   rel="noopener">
+                    Ver / imprimir factura
+                </a>
+
+                <button type="button"
+                        class="historial-button-secondary"
+                        @onclick="CerrarDetalle">
+                    Cerrar
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+}
+
+<style>
+
+    .historial-page {
+        padding: 2rem;
+        max-width: 1800px;
+        margin: 0 auto;
+    }
+
+    .historial-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .historial-eyebrow,
+    .historial-section-label {
+        font-size: .72rem;
+        font-weight: 800;
+        letter-spacing: .12em;
+        text-transform: uppercase;
+        opacity: .65;
+    }
+
+    .historial-header h1 {
+        margin: .25rem 0 .4rem;
+        font-size: 2rem;
+        font-weight: 800;
+    }
+
+    .historial-header p {
+        margin: 0;
+        opacity: .7;
+    }
+
+    .historial-new-sale,
+    .historial-button-primary,
+    .historial-button-secondary,
+    .historial-detail-button,
+    .historial-invoice-link {
+        border-radius: .65rem;
+        padding: .7rem 1rem;
+        font-weight: 700;
+        text-decoration: none;
+        border: 1px solid transparent;
+        cursor: pointer;
+    }
+
+    .historial-new-sale {
+        background: var(--bs-primary);
+        color: white;
+    }
+
+    .historial-filter-card,
+    .historial-results-card {
+        background: var(--bs-body-bg);
+        border: 1px solid var(--bs-border-color);
+        border-radius: 1rem;
+        box-shadow: 0 .25rem 1rem rgba(0,0,0,.04);
+        margin-bottom: 1.5rem;
+    }
+
+    .historial-filter-card {
+        padding: 1.5rem;
+    }
+
+    .historial-section-heading,
+    .historial-results-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1.25rem;
+    }
+
+    .historial-section-heading h2,
+    .historial-results-header h2 {
+        margin: .2rem 0 0;
+        font-size: 1.15rem;
+        font-weight: 800;
+    }
+
+    .historial-sort-info,
+    .historial-results-count {
+        font-size: .85rem;
+        opacity: .65;
+    }
+
+    .historial-filter-grid {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(150px, 1fr));
+        gap: 1rem;
+    }
+
+    .historial-field {
+        display: flex;
+        flex-direction: column;
+        gap: .4rem;
+    }
+
+    .historial-field label {
+        font-size: .85rem;
+        font-weight: 700;
+    }
+
+    .historial-input {
+        width: 100%;
+        min-height: 42px;
+        border: 1px solid var(--bs-border-color);
+        border-radius: .6rem;
+        padding: .55rem .7rem;
+        background: var(--bs-body-bg);
+        color: var(--bs-body-color);
+    }
+
+    .historial-filter-actions {
+        display: flex;
+        gap: .75rem;
+        margin-top: 1.25rem;
+    }
+
+    .historial-button-primary {
+        background: var(--bs-primary);
+        color: white;
+    }
+
+    .historial-button-secondary {
+        background: transparent;
+        color: var(--bs-body-color);
+        border-color: var(--bs-border-color);
+    }
+
+    .historial-results-card {
+        overflow: hidden;
+    }
+
+    .historial-results-header {
+        padding: 1.25rem 1.5rem;
+        margin: 0;
+        border-bottom: 1px solid var(--bs-border-color);
+    }
+
+    .historial-table-wrapper,
+    .historial-detail-table-wrapper {
+        overflow-x: auto;
+    }
+
+    .historial-table,
+    .historial-detail-table {
+        width: 100%;
+        border-collapse: collapse;
+        white-space: nowrap;
+    }
+
+    .historial-table th,
+    .historial-table td,
+    .historial-detail-table th,
+    .historial-detail-table td {
+        padding: .85rem 1rem;
+        border-bottom: 1px solid var(--bs-border-color);
+        vertical-align: middle;
+    }
+
+    .historial-table th,
+    .historial-detail-table th {
+        font-size: .75rem;
+        text-transform: uppercase;
+        letter-spacing: .04em;
+        opacity: .65;
+        background: rgba(127,127,127,.05);
+    }
+
+    .historial-table tbody tr:hover {
+        background: rgba(127,127,127,.04);
+    }
+
+    .historial-invoice {
+        font-family: monospace;
+    }
+
+    .historial-date {
+        font-weight: 700;
+    }
+
+    .historial-table small {
+        opacity: .6;
+    }
+
+    .historial-payment,
+    .historial-status {
+        display: inline-block;
+        border-radius: 999px;
+        padding: .25rem .6rem;
+        font-size: .75rem;
+        font-weight: 700;
+        background: rgba(127,127,127,.1);
+    }
+
+    .historial-status-success {
+        background: rgba(25,135,84,.12);
+        color: #198754;
+    }
+
+    .historial-detail-button {
+        background: transparent;
+        color: var(--bs-primary);
+        border-color: var(--bs-primary);
+        padding: .45rem .7rem;
+        font-size: .8rem;
+    }
+
+    .historial-loading,
+    .historial-empty {
+        min-height: 260px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        gap: .6rem;
+        padding: 2rem;
+        text-align: center;
+    }
+
+    .historial-empty-icon {
+        width: 54px;
+        height: 54px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        background: rgba(127,127,127,.1);
+        font-size: 1.5rem;
+    }
+
+    .historial-empty h3 {
+        margin: .5rem 0 0;
+    }
+
+    .historial-empty p {
+        margin: 0;
+        opacity: .65;
+    }
+
+    .historial-alert {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+        padding: .85rem 1rem;
+        border-radius: .7rem;
+        margin-bottom: 1rem;
+    }
+
+    .historial-alert button {
+        border: 0;
+        background: transparent;
+        font-size: 1.25rem;
+        cursor: pointer;
+    }
+
+    .historial-alert-error {
+        background: rgba(220,53,69,.1);
+        color: #dc3545;
+    }
+
+    .historial-alert-success {
+        background: rgba(25,135,84,.1);
+        color: #198754;
+    }
+
+    .historial-modal-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 2000;
+        background: rgba(0,0,0,.55);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 1rem;
+    }
+
+    .historial-modal {
+        width: min(1400px, 100%);
+        max-height: 92vh;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        background: var(--bs-body-bg);
+        color: var(--bs-body-color);
+        border-radius: 1rem;
+        box-shadow: 0 1rem 3rem rgba(0,0,0,.25);
+    }
+
+    .historial-modal-header,
+    .historial-modal-footer {
+        padding: 1.25rem 1.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+        border-bottom: 1px solid var(--bs-border-color);
+    }
+
+    .historial-modal-header h2 {
+        margin: .25rem 0;
+    }
+
+    .historial-modal-header p {
+        margin: 0;
+        opacity: .65;
+    }
+
+    .historial-modal-close {
+        border: 0;
+        background: transparent;
+        font-size: 1.8rem;
+        cursor: pointer;
+    }
+
+    .historial-modal-body {
+        overflow-y: auto;
+        padding: 1.5rem;
+    }
+
+    .historial-detail-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .historial-detail-grid > div {
+        padding: .9rem;
+        border-radius: .7rem;
+        background: rgba(127,127,127,.06);
+    }
+
+    .historial-detail-grid span,
+    .historial-totals span {
+        display: block;
+        font-size: .75rem;
+        opacity: .6;
+        margin-bottom: .2rem;
+    }
+
+    .historial-totals {
+        width: min(430px, 100%);
+        margin: 1.5rem 0 0 auto;
+    }
+
+    .historial-totals > div {
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: .45rem 0;
+    }
+
+    .historial-grand-total {
+        border-top: 1px solid var(--bs-border-color);
+        margin-top: .4rem;
+        padding-top: .8rem !important;
+        font-size: 1.15rem;
+    }
+
+    .historial-modal-footer {
+        border-top: 1px solid var(--bs-border-color);
+        border-bottom: 0;
+        justify-content: flex-end;
+    }
+
+    .historial-invoice-link {
+        background: var(--bs-primary);
+        color: white;
+    }
+
+    @@media (max-width: 1100px) {
+
+        .historial-filter-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .historial-detail-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @@media (max-width: 700px) {
+
+        .historial-page {
+            padding: 1rem;
+        }
+
+        .historial-header {
+            flex-direction: column;
+        }
+
+        .historial-filter-grid,
+        .historial-detail-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .historial-filter-actions {
+            flex-direction: column;
+        }
+
+        .historial-button-primary,
+        .historial-button-secondary {
+            width: 100%;
+        }
+    }
+
+</style>
+
+@code {
+
+    private FiltroHistorialVentas Filtro { get; set; } = new();
+
+    private IReadOnlyList<Venta> Ventas { get; set; } =
+        Array.Empty<Venta>();
+
+    private Venta? VentaSeleccionada { get; set; }
+
+    private bool Cargando { get; set; }
+
+    private string Mensaje { get; set; } = string.Empty;
+
+    private bool MensajeEsError { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await BuscarAsync();
+    }
+
+    private async Task BuscarAsync()
+    {
+        if (Cargando)
+            return;
+
+        Cargando = true;
+        Mensaje = string.Empty;
+
+        try
+        {
+            if (Filtro.Desde.HasValue &&
+                Filtro.Hasta.HasValue &&
+                Filtro.Desde.Value.Date > Filtro.Hasta.Value.Date)
+            {
+                Ventas = Array.Empty<Venta>();
+
+                MostrarMensaje(
+                    true,
+                    "La fecha Desde no puede ser posterior a la fecha Hasta.");
+
+                return;
+            }
+
+            Ventas =
+                await VentaService.ObtenerHistorialAsync(Filtro);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            Ventas = Array.Empty<Venta>();
+            MostrarMensaje(true, ex.Message);
+        }
+        catch (Exception ex)
+        {
+            Ventas = Array.Empty<Venta>();
+
+            MostrarMensaje(
+                true,
+                $"No fue posible cargar el historial: {ex.Message}");
+        }
+        finally
+        {
+            Cargando = false;
+        }
+    }
+
+    private async Task LimpiarAsync()
+    {
+        Filtro = new FiltroHistorialVentas();
+
+        await BuscarAsync();
+    }
+
+    private void VerDetalle(Venta venta)
+    {
+        VentaSeleccionada = venta;
+    }
+
+    private void CerrarDetalle()
+    {
+        VentaSeleccionada = null;
+    }
+
+    private void MostrarMensaje(bool esError, string mensaje)
+    {
+        MensajeEsError = esError;
+        Mensaje = mensaje;
+    }
+
+    private void LimpiarMensaje()
+    {
+        Mensaje = string.Empty;
+        MensajeEsError = false;
+    }
+}
+

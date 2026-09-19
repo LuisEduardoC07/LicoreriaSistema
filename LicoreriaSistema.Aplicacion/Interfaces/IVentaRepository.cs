@@ -1,4 +1,5 @@
-﻿using LicoreriaSistema.Dominio.Entidades;
+﻿using LibreriaSistema.Aplicacion.Modelos;
+using LicoreriaSistema.Dominio.Entidades;
 
 namespace LibreriaSistema.Aplicacion.Interfaces;
 
@@ -26,4 +27,10 @@ public interface IVentaRepository
     Task<Venta?> ObtenerPorNumeroFacturaAsync(
         string numeroFactura,
         CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<Venta>> BuscarHistorialAsync(
+        FiltroHistorialVentas filtro,
+        IReadOnlyCollection<int>? sucursalesPermitidas = null,
+        CancellationToken cancellationToken = default);
 }
+
