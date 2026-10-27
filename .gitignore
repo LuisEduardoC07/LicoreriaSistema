@@ -14,3 +14,9 @@
 # Scripts de diagnóstico local
 prueba-selector.ps1
 RepararPuntoVenta.ps1
+# Configuracion de produccion con credenciales
+/LicoreriaSistema.Web/appsettings.Production.json
+# Copias de seguridad locales
+*.bak_*
+*.bad_posfix
+/LicoreriaSistema.Web/Components/Layout/NavMenu.razor.bak
