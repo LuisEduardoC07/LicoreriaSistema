@@ -1,3 +1,4 @@
+@using System.Globalization
 @page "/historial-ventas"
 
 @attribute [Authorize]
@@ -29,6 +30,161 @@
         </a>
     </header>
 
+        @* Dashboard de ventas *@
+    <section class="historial-dashboard">
+        <div class="historial-kpi-grid">
+            <article class="historial-kpi">
+                <span class="historial-kpi-label">TOTAL VENDIDO</span>
+                <strong>RD$ @TotalVendido.ToString("N2", CultureInfo.GetCultureInfo("es-DO"))</strong>
+                <small>Seg√∫n los filtros aplicados</small>
+            </article>
+
+            <article class="historial-kpi">
+                <span class="historial-kpi-label">FACTURAS</span>
+                <strong>@VentasVisibles.Count</strong>
+                <small>Ventas consultadas</small>
+            </article>
+
+            <article class="historial-kpi">
+                <span class="historial-kpi-label">TICKET PROMEDIO</span>
+                <strong>RD$ @TicketPromedio.ToString("N2", CultureInfo.GetCultureInfo("es-DO"))</strong>
+                <small>Promedio por factura</small>
+            </article>
+
+            <article class="historial-kpi">
+                <span class="historial-kpi-label">SUCURSALES</span>
+                <strong>@SucursalesConVentas</strong>
+                <small>Con ventas en el resultado</small>
+            </article>
+        </div>
+
+        <section class="historial-chart-card">
+            <div class="historial-chart-header">
+                <div>
+                    <span class="historial-section-label">AN√ÅLISIS</span>
+                    <h2>Ventas por sucursal</h2>
+                    <p>Selecciona una sucursal para filtrar las facturas.</p>
+                </div>
+
+                <div class="historial-chart-switch">
+                    <button type="button"
+                            class="historial-chart-toggle @(TipoGrafico == "barras" ? "active" : "")"
+                            @onclick='() => TipoGrafico = "barras"'>
+                        Barras
+                    </button>
+                    <button type="button"
+                            class="historial-chart-toggle @(TipoGrafico == "pastel" ? "active" : "")"
+                            @onclick='() => TipoGrafico = "pastel"'>
+                        Pastel
+                    </button>
+                </div>
+            </div>
+
+            @if (ResumenPorSucursal.Count == 0)
+            {
+                <div class="historial-chart-empty">
+                    No hay ventas para representar con los filtros actuales.
+                </div>
+            }
+            else if (TipoGrafico == "barras")
+            {
+                <div class="historial-bars">
+                    @for (var i = 0; i < ResumenPorSucursal.Count; i++)
+                    {
+                        var sucursal = ResumenPorSucursal[i];
+
+                        <button type="button"
+                                class="historial-bar-row @(SucursalSeleccionadaId == sucursal.SucursalId ? "selected" : "")"
+                                @onclick="() => SeleccionarSucursal(sucursal.SucursalId)">
+                            <span class="historial-bar-heading">
+                                <span class="historial-bar-name">@sucursal.Nombre</span>
+                                <span class="historial-bar-value">@sucursal.Total.ToString("N2", CultureInfo.GetCultureInfo("es-DO"))</span>
+                            </span>
+                            <span class="historial-bar-track">
+                                <span class="historial-bar-fill"
+                                      style="width: @(PorcentajeSucursal(sucursal.Total))%; background-color: @(ColorSucursal(i));">
+                                </span>
+                            </span>
+                            <span class="historial-bar-caption">
+                                @sucursal.CantidadVentas factura(s)
+                            </span>
+                        </button>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="historial-pie-layout">
+                    <svg class="historial-pie-chart"
+                         viewBox="0 0 320 320"
+                         role="img"
+                         aria-label="Distribuci√≥n de ventas por sucursal">
+                        @if (ResumenPorSucursal.Count == 1)
+                        {
+                            var unicaSucursal = ResumenPorSucursal[0];
+                            <circle cx="160"
+                                    cy="160"
+                                    r="115"
+                                    fill="@ColorSucursal(0)"
+                                    stroke="var(--bs-body-bg)"
+                                    stroke-width="2"
+                                    role="button"
+                                    tabindex="0"
+                                    @onclick="() => SeleccionarSucursal(unicaSucursal.SucursalId)">
+                                <title>@unicaSucursal.Nombre: @unicaSucursal.Total.ToString("N2", CultureInfo.GetCultureInfo("es-DO"))</title>
+                            </circle>
+                        }
+                        else
+                        {
+                            @for (var i = 0; i < ResumenPorSucursal.Count; i++)
+                            {
+                                var sucursal = ResumenPorSucursal[i];
+                                <path d="@RutaPastel(i)"
+                                      fill="@ColorSucursal(i)"
+                                      stroke="var(--bs-body-bg)"
+                                      stroke-width="2"
+                                      role="button"
+                                      tabindex="0"
+                                      @onclick="() => SeleccionarSucursal(sucursal.SucursalId)">
+                                    <title>@sucursal.Nombre: @sucursal.Total.ToString("N2", CultureInfo.GetCultureInfo("es-DO"))</title>
+                                </path>
+                            }
+                        }
+                    </svg>
+
+                    <div class="historial-pie-legend">
+                        @for (var i = 0; i < ResumenPorSucursal.Count; i++)
+                        {
+                            var sucursal = ResumenPorSucursal[i];
+
+                            <button type="button"
+                                    class="historial-legend-row @(SucursalSeleccionadaId == sucursal.SucursalId ? "selected" : "")"
+                                    @onclick="() => SeleccionarSucursal(sucursal.SucursalId)">
+                                <span class="historial-legend-dot"
+                                      style="background-color: @(ColorSucursal(i));">
+                                </span>
+                                <span class="historial-legend-name">@sucursal.Nombre</span>
+                                <strong>RD$ @sucursal.Total.ToString("N2", CultureInfo.GetCultureInfo("es-DO"))</strong>
+                            </button>
+                        }
+                    </div>
+                </div>
+            }
+
+            @if (SucursalSeleccionadaId.HasValue)
+            {
+                <div class="historial-chart-selection">
+                    <span>Filtrando por: <strong>@NombreSucursalSeleccionada</strong></span>
+                    <button type="button"
+                            class="historial-show-all"
+                            @onclick="MostrarTodasLasSucursales">
+                        Mostrar todas las sucursales
+                    </button>
+                </div>
+            }
+        </section>
+    </section>
+
     @if (!string.IsNullOrWhiteSpace(Mensaje))
     {
         <div class="historial-alert @(MensajeEsError ? "historial-alert-error" : "historial-alert-success")">
@@ -37,7 +193,7 @@
             <button type="button"
                     @onclick="LimpiarMensaje"
                     aria-label="Cerrar">
-                ◊
+                ÔøΩ
             </button>
         </div>
     }
@@ -51,7 +207,7 @@
             </div>
 
             <span class="historial-sort-info">
-                M·s recientes primero
+                MÔøΩs recientes primero
             </span>
         </div>
 
@@ -76,7 +232,7 @@
             </div>
 
             <div class="historial-field">
-                <label for="factura">N˙mero de factura</label>
+                <label for="factura">NÔøΩmero de factura</label>
 
                 <InputText id="factura"
                            class="historial-input"
@@ -94,7 +250,7 @@
             </div>
 
             <div class="historial-field">
-                <label for="metodoPago">MÈtodo de pago</label>
+                <label for="metodoPago">MÔøΩtodo de pago</label>
 
                 <InputSelect id="metodoPago"
                              class="historial-input"
@@ -152,7 +308,7 @@
             </div>
 
             <div class="historial-results-count">
-                @Ventas.Count venta(s)
+                @VentasVisibles.Count venta(s)
             </div>
 
         </div>
@@ -171,7 +327,7 @@
 
             </div>
         }
-        else if (Ventas.Count == 0)
+        else if (VentasVisibles.Count == 0)
         {
             <div class="historial-empty">
 
@@ -212,7 +368,7 @@
 
                     <tbody>
 
-                        @foreach (var venta in Ventas)
+                        @foreach (var venta in VentasVisibles)
                         {
                             <tr>
 
@@ -343,7 +499,7 @@
                 <button type="button"
                         class="historial-modal-close"
                         @onclick="CerrarDetalle">
-                    ◊
+                    ÔøΩ
                 </button>
 
             </div>
@@ -384,7 +540,7 @@
                     </div>
 
                     <div>
-                        <span>MÈtodo de pago</span>
+                        <span>MÔøΩtodo de pago</span>
                         <strong>
                             @VentaSeleccionada.MetodoPago
                         </strong>
@@ -405,7 +561,7 @@
 
                         <thead>
                             <tr>
-                                <th>CÛdigo</th>
+                                <th>CÔøΩdigo</th>
                                 <th>Producto</th>
                                 <th class="text-end">Cantidad</th>
                                 <th class="text-end">Precio</th>
@@ -913,6 +1069,262 @@
         color: white;
     }
 
+    .historial-dashboard {
+        display: grid;
+        gap: 1.25rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .historial-kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 1rem;
+    }
+
+    .historial-kpi {
+        min-width: 0;
+        padding: 1.25rem;
+        border: 1px solid var(--bs-border-color);
+        border-radius: 1rem;
+        background: var(--bs-body-bg);
+        display: flex;
+        flex-direction: column;
+        gap: .45rem;
+    }
+
+    .historial-kpi-label,
+    .historial-section-label {
+        font-size: .72rem;
+        font-weight: 800;
+        letter-spacing: .08em;
+        opacity: .7;
+    }
+
+    .historial-kpi strong {
+        font-size: clamp(1.25rem, 2vw, 1.8rem);
+        line-height: 1.25;
+        overflow-wrap: anywhere;
+    }
+
+    .historial-kpi small {
+        opacity: .65;
+    }
+
+    .historial-chart-card {
+        padding: 1.5rem;
+        border: 1px solid var(--bs-border-color);
+        border-radius: 1rem;
+        background: var(--bs-body-bg);
+        min-width: 0;
+    }
+
+    .historial-chart-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+        margin-bottom: 1.5rem;
+    }
+
+    .historial-chart-header h2 {
+        font-size: 1.15rem;
+        font-weight: 800;
+        margin: .25rem 0;
+    }
+
+    .historial-chart-header p {
+        margin: 0;
+        opacity: .7;
+        font-size: .9rem;
+    }
+
+    .historial-chart-switch {
+        display: flex;
+        gap: .35rem;
+        padding: .25rem;
+        border-radius: .7rem;
+        background: var(--bs-tertiary-bg);
+    }
+
+    .historial-chart-toggle {
+        border: 0;
+        border-radius: .5rem;
+        padding: .6rem .9rem;
+        background: transparent;
+        color: var(--bs-body-color);
+        font-weight: 700;
+        cursor: pointer;
+    }
+
+    .historial-chart-toggle.active {
+        background: var(--bs-primary);
+        color: white;
+    }
+
+    .historial-bars {
+        display: grid;
+        gap: .65rem;
+    }
+
+    .historial-bar-row {
+        width: 100%;
+        min-width: 0;
+        display: grid;
+        gap: .45rem;
+        text-align: left;
+        padding: .85rem;
+        border: 1px solid transparent;
+        border-radius: .75rem;
+        background: transparent;
+        color: var(--bs-body-color);
+        cursor: pointer;
+    }
+
+    .historial-bar-row:hover,
+    .historial-bar-row.selected,
+    .historial-legend-row:hover,
+    .historial-legend-row.selected {
+        background: var(--bs-tertiary-bg);
+        border-color: var(--bs-primary);
+    }
+
+    .historial-bar-heading {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 1rem;
+    }
+
+    .historial-bar-name {
+        font-weight: 700;
+        overflow-wrap: anywhere;
+    }
+
+    .historial-bar-value {
+        font-weight: 800;
+        white-space: nowrap;
+    }
+
+    .historial-bar-track {
+        display: block;
+        height: .7rem;
+        border-radius: 1rem;
+        overflow: hidden;
+        background: var(--bs-tertiary-bg);
+    }
+
+    .historial-bar-fill {
+        display: block;
+        height: 100%;
+        min-width: 2px;
+        border-radius: inherit;
+        transition: width .2s ease;
+    }
+
+    .historial-bar-caption {
+        font-size: .78rem;
+        opacity: .65;
+    }
+
+    .historial-chart-empty {
+        padding: 2rem 1rem;
+        text-align: center;
+        opacity: .7;
+    }
+
+    .historial-pie-layout {
+        display: grid;
+        grid-template-columns: minmax(180px, 320px) minmax(0, 1fr);
+        align-items: center;
+        justify-content: center;
+        gap: 2rem;
+    }
+
+    .historial-pie-chart {
+        display: block;
+        width: 100%;
+        max-width: 320px;
+        margin: 0 auto;
+    }
+
+    .historial-pie-chart path,
+    .historial-pie-chart circle {
+        cursor: pointer;
+        transition: opacity .15s ease;
+    }
+
+    .historial-pie-chart path:hover,
+    .historial-pie-chart circle:hover {
+        opacity: .78;
+    }
+
+    .historial-pie-legend {
+        display: grid;
+        gap: .4rem;
+        min-width: 0;
+    }
+
+    .historial-legend-row {
+        display: flex;
+        align-items: center;
+        gap: .65rem;
+        width: 100%;
+        min-width: 0;
+        padding: .65rem;
+        border: 1px solid transparent;
+        border-radius: .6rem;
+        background: transparent;
+        color: var(--bs-body-color);
+        text-align: left;
+        cursor: pointer;
+    }
+
+    .historial-legend-dot {
+        flex: 0 0 .75rem;
+        width: .75rem;
+        height: .75rem;
+        border-radius: .2rem;
+    }
+
+    .historial-legend-name {
+        flex: 1;
+        min-width: 0;
+        overflow-wrap: anywhere;
+    }
+
+    .historial-legend-row strong {
+        white-space: nowrap;
+        font-size: .85rem;
+    }
+
+    .historial-chart-selection {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: .75rem;
+        margin-top: 1.25rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--bs-border-color);
+        font-size: .9rem;
+    }
+
+    .historial-show-all {
+        border: 1px solid var(--bs-primary);
+        color: var(--bs-primary);
+        background: transparent;
+        border-radius: .6rem;
+        padding: .55rem .85rem;
+        font-weight: 700;
+        cursor: pointer;
+    }
+
+    .historial-show-all:hover {
+        background: var(--bs-primary);
+        color: white;
+    }
+
     @@media (max-width: 1100px) {
 
         .historial-filter-grid {
@@ -966,6 +1378,122 @@
 
     private bool MensajeEsError { get; set; }
 
+    private int? SucursalSeleccionadaId { get; set; }
+
+    private string TipoGrafico { get; set; } = "barras";
+
+    private sealed record ResumenSucursal(
+        int SucursalId,
+        string Nombre,
+        decimal Total,
+        int CantidadVentas);
+
+    private List<ResumenSucursal> ResumenPorSucursal =>
+        Ventas
+            .GroupBy(v => new
+            {
+                v.SucursalId,
+                Nombre = v.Sucursal == null
+                    ? "Sin sucursal"
+                    : v.Sucursal.Nombre
+            })
+            .Select(g => new ResumenSucursal(
+                g.Key.SucursalId,
+                g.Key.Nombre,
+                g.Sum(v => v.Total),
+                g.Count()))
+            .OrderByDescending(s => s.Total)
+            .ToList();
+
+    private IReadOnlyList<Venta> VentasVisibles =>
+        SucursalSeleccionadaId.HasValue
+            ? Ventas.Where(v => v.SucursalId == SucursalSeleccionadaId.Value).ToList()
+            : Ventas;
+
+    private decimal TotalVendido =>
+        VentasVisibles.Sum(v => v.Total);
+
+    private decimal TicketPromedio =>
+        VentasVisibles.Count == 0
+            ? 0m
+            : TotalVendido / VentasVisibles.Count;
+
+    private int SucursalesConVentas =>
+        VentasVisibles.Select(v => v.SucursalId).Distinct().Count();
+
+    private decimal MaximoVentasSucursal =>
+        ResumenPorSucursal.Count == 0
+            ? 0m
+            : ResumenPorSucursal.Max(s => s.Total);
+
+    private string NombreSucursalSeleccionada =>
+        ResumenPorSucursal
+            .FirstOrDefault(s => s.SucursalId == SucursalSeleccionadaId)?.Nombre
+        ?? "Sucursal seleccionada";
+
+    private static readonly string[] ColoresGrafico =
+    {
+        "#2563eb", "#16a34a", "#ea580c", "#9333ea", "#0891b2",
+        "#db2777", "#ca8a04", "#475569", "#0d9488", "#dc2626"
+    };
+
+    private string ColorSucursal(int indice) =>
+        ColoresGrafico[indice % ColoresGrafico.Length];
+
+    private int PorcentajeSucursal(decimal total)
+    {
+        if (MaximoVentasSucursal <= 0m)
+            return 0;
+
+        return (int)Math.Round(
+            total / MaximoVentasSucursal * 100m,
+            MidpointRounding.AwayFromZero);
+    }
+
+    private void SeleccionarSucursal(int sucursalId)
+    {
+        SucursalSeleccionadaId = sucursalId;
+    }
+
+    private void MostrarTodasLasSucursales()
+    {
+        SucursalSeleccionadaId = null;
+    }
+
+    private string RutaPastel(int indice)
+    {
+        var datos = ResumenPorSucursal;
+        var total = datos.Sum(s => s.Total);
+
+        if (total <= 0m || datos.Count <= 1)
+            return string.Empty;
+
+        var inicio = 0d;
+
+        for (var i = 0; i < indice; i++)
+        {
+            inicio += (double)datos[i].Total / (double)total * 360d;
+        }
+
+        var amplitud = (double)datos[indice].Total / (double)total * 360d;
+        var fin = inicio + amplitud;
+
+        const double centro = 160d;
+        const double radio = 115d;
+
+        var inicioRad = (inicio - 90d) * Math.PI / 180d;
+        var finRad = (fin - 90d) * Math.PI / 180d;
+
+        var x1 = centro + radio * Math.Cos(inicioRad);
+        var y1 = centro + radio * Math.Sin(inicioRad);
+        var x2 = centro + radio * Math.Cos(finRad);
+        var y2 = centro + radio * Math.Sin(finRad);
+
+        var arcoGrande = amplitud > 180d ? 1 : 0;
+
+        return FormattableString.Invariant(
+            $"M {centro} {centro} L {x1:F4} {y1:F4} A {radio} {radio} 0 {arcoGrande} 1 {x2:F4} {y2:F4} Z");
+    }
     protected override async Task OnInitializedAsync()
     {
         await BuscarAsync();
