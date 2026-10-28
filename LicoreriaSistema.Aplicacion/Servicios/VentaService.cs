@@ -1,4 +1,4 @@
-﻿using LibreriaSistema.Aplicacion.Interfaces;
+using LibreriaSistema.Aplicacion.Interfaces;
 using LibreriaSistema.Aplicacion.Modelos;
 using LibreriaSistema.Aplicacion.Seguridad;
 using LicoreriaSistema.Dominio.Entidades;
@@ -537,7 +537,7 @@ public sealed class VentaService
         var cotizacion =
             await CalcularCotizacionAsync(
                 sucursalId,
-                lineas,
+                lineas ?? Array.Empty<LineaVentaSolicitud>(),
                 cancellationToken);
 
         if (!cotizacion.Exitoso)

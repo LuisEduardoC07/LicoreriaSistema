@@ -20,3 +20,6 @@ RepararPuntoVenta.ps1
 *.bak_*
 *.bad_posfix
 /LicoreriaSistema.Web/Components/Layout/NavMenu.razor.bak
+
+# Respaldos locales
+*.bak

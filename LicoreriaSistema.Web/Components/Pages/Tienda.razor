@@ -1,0 +1,461 @@
+﻿@page "/tienda"
+@attribute [Microsoft.AspNetCore.Authorization.AllowAnonymous]
+@rendermode InteractiveServer
+@layout TiendaLayout
+@using System.Globalization
+@using LibreriaSistema.Aplicacion.DTOs
+@using LibreriaSistema.Aplicacion.Interfaces
+@inject ICatalogoPublicoRepository CatalogoRepository
+@inject NavigationManager Navigation
+
+<PageTitle>Tienda | Licorería Sistema</PageTitle>
+
+<section class="tienda-hero">
+    <div class="tienda-hero-copy">
+        <span class="tienda-eyebrow">LICORERÍA SISTEMA</span>
+        <h1>Encuentra tus favoritos.</h1>
+        <p>Explora nuestro catálogo y prepara una cotización fácilmente por WhatsApp.</p>
+    </div>
+    <div class="tienda-hero-badge">
+        <span class="tienda-hero-badge-icon">LS</span>
+        <span>
+            <strong>Compra a tu manera</strong>
+            <small>Consulta antes de comprar</small>
+        </span>
+    </div>
+</section>
+
+@if (!string.IsNullOrWhiteSpace(mensajeError))
+{
+    <div class="tienda-alerta" role="alert">@mensajeError</div>
+}
+
+<section class="tienda-controles" aria-label="Filtros del catálogo">
+    <div class="tienda-control tienda-sucursal-control">
+        <label for="sucursal-tienda">Sucursal</label>
+        <select id="sucursal-tienda"
+                value="@sucursalSeleccionada"
+                @onchange="CambiarSucursal"
+                disabled="@cargando">
+            <option value="0">Selecciona una sucursal</option>
+            @foreach (var sucursal in sucursales)
+            {
+                <option value="@sucursal.Id">@sucursal.Nombre</option>
+            }
+        </select>
+    </div>
+
+    <div class="tienda-control tienda-busqueda-control">
+        <label for="buscar-producto">Buscar productos</label>
+        <input id="buscar-producto"
+               type="search"
+               placeholder="Busca por nombre o descripción..."
+               @bind="busqueda"
+               @bind:event="oninput"
+               disabled="@(cargando || sucursalSeleccionada <= 0)" />
+    </div>
+
+    <div class="tienda-control tienda-categoria-control">
+        <label for="categoria-tienda">Categoría</label>
+        <select id="categoria-tienda"
+                @bind="categoriaSeleccionada"
+                disabled="@(cargando || sucursalSeleccionada <= 0)">
+            <option value="">Todas las categorías</option>
+            @foreach (var categoria in categorias)
+            {
+                <option value="@categoria">@categoria</option>
+            }
+        </select>
+    </div>
+</section>
+
+<div class="tienda-contenido">
+    <section class="tienda-catalogo" aria-label="Catálogo de productos">
+        <div class="tienda-seccion-heading">
+            <div>
+                <h2>Nuestros productos</h2>
+                <p>
+                    @if (cargando)
+                    {
+                        <span>Cargando catálogo...</span>
+                    }
+                    else
+                    {
+                        <span>@productosFiltrados.Count producto(s) encontrados</span>
+                    }
+                </p>
+            </div>
+        </div>
+
+        @if (cargando)
+        {
+            <div class="tienda-estado">
+                <div class="tienda-spinner"></div>
+                <p>Cargando productos y sucursales...</p>
+            </div>
+        }
+        else if (sucursalSeleccionada <= 0)
+        {
+            <div class="tienda-estado">
+                <h3>Selecciona una sucursal</h3>
+                <p>Así podremos consultar la disponibilidad de los productos en el lugar correcto.</p>
+            </div>
+        }
+        else if (productosFiltrados.Count == 0)
+        {
+            <div class="tienda-estado">
+                <h3>No encontramos productos</h3>
+                <p>Prueba con otra búsqueda o categoría.</p>
+            </div>
+        }
+        else
+        {
+            <div class="tienda-productos-grid">
+                @foreach (var producto in productosFiltrados)
+                {
+                    <article class="tienda-producto-card" @key="producto.Id">
+                        <div class="tienda-producto-imagen">
+                            @if (!string.IsNullOrWhiteSpace(producto.ImagenUrl))
+                            {
+                                <img src="@producto.ImagenUrl"
+                                     alt="@producto.Nombre"
+                                     loading="lazy" />
+                            }
+                            else
+                            {
+                                <div class="tienda-producto-placeholder">
+                                    <span>LS</span>
+                                    <small>@producto.CategoriaNombre</small>
+                                </div>
+                            }
+
+                            <span class="tienda-stock @(producto.Disponible ? "disponible" : "agotado")">
+                                @(producto.Disponible ? "Disponible" : "Agotado")
+                            </span>
+                        </div>
+
+                        <div class="tienda-producto-info">
+                            <span class="tienda-producto-categoria">@producto.CategoriaNombre</span>
+                            <h3>@producto.Nombre</h3>
+
+                            @if (!string.IsNullOrWhiteSpace(producto.Descripcion))
+                            {
+                                <p class="tienda-producto-descripcion">@producto.Descripcion</p>
+                            }
+                            else
+                            {
+                                <p class="tienda-producto-descripcion">Consulta más detalles por WhatsApp.</p>
+                            }
+
+                            <div class="tienda-producto-pie">
+                                <div class="tienda-precio">
+                                    <small>Precio de referencia</small>
+                                    <strong>@FormatoPrecio(producto.PrecioVenta)</strong>
+                                </div>
+
+                                <button type="button"
+                                        class="tienda-agregar"
+                                        disabled="@(!producto.Disponible)"
+                                        @onclick="() => AgregarAlCarrito(producto.Id)">
+                                    @(producto.Disponible ? "Agregar +" : "Agotado")
+                                </button>
+                            </div>
+                        </div>
+                    </article>
+                }
+            </div>
+        }
+    </section>
+
+    <aside class="tienda-carrito" aria-label="Cotización">
+        <div class="tienda-carrito-heading">
+            <div>
+                <span class="tienda-carrito-etiqueta">TU PEDIDO</span>
+                <h2>Mi cotización</h2>
+            </div>
+            <span class="tienda-carrito-contador">@CantidadTotal</span>
+        </div>
+
+        @if (carrito.Count == 0)
+        {
+            <div class="tienda-carrito-vacio">
+                <div class="tienda-carrito-icono">+</div>
+                <strong>Tu carrito está vacío</strong>
+                <p>Agrega productos del catálogo para preparar tu cotización.</p>
+            </div>
+        }
+        else
+        {
+            <div class="tienda-carrito-lineas">
+                @foreach (var linea in carrito)
+                {
+                    <div class="tienda-carrito-linea" @key="linea.Producto.Id">
+                        <div class="tienda-linea-info">
+                            <strong>@linea.Producto.Nombre</strong>
+                            <small>@FormatoPrecio(linea.Producto.PrecioVenta) por unidad</small>
+                            <button type="button"
+                                    class="tienda-eliminar"
+                                    @onclick="() => QuitarDelCarrito(linea.Producto.Id)">
+                                Eliminar
+                            </button>
+                        </div>
+
+                        <div class="tienda-linea-derecha">
+                            <div class="tienda-cantidad">
+                                <button type="button"
+                                        aria-label="Reducir cantidad"
+                                        disabled="@(linea.Cantidad <= 1)"
+                                        @onclick="() => CambiarCantidad(linea.Producto.Id, -1)">−</button>
+                                <span>@linea.Cantidad</span>
+                                <button type="button"
+                                        aria-label="Aumentar cantidad"
+                                        disabled="@(linea.Cantidad >= 99)"
+                                        @onclick="() => CambiarCantidad(linea.Producto.Id, 1)">+</button>
+                            </div>
+                            <strong>@FormatoPrecio(linea.Producto.PrecioVenta * linea.Cantidad)</strong>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <div class="tienda-carrito-total">
+                <span>Subtotal estimado</span>
+                <strong>@FormatoPrecio(Subtotal)</strong>
+            </div>
+
+            <p class="tienda-cotizacion-nota">
+                Cotización sujeta a confirmación de precios y disponibilidad por la sucursal.
+                No representa una factura ni reserva productos.
+            </p>
+
+            <button type="button"
+                    class="tienda-whatsapp"
+                    @onclick="PrepararCotizacion">
+                Preparar cotización por WhatsApp
+            </button>
+
+            <button type="button"
+                    class="tienda-vaciar"
+                    @onclick="VaciarCarrito">
+                Vaciar carrito
+            </button>
+        }
+    </aside>
+</div>
+
+@code {
+    private static readonly CultureInfo CulturaRD =
+        CultureInfo.GetCultureInfo("es-DO");
+
+    private const string NumeroWhatsApp = "18292575688";
+
+    private List<SucursalCatalogoPublicoDto> sucursales = new();
+    private List<ProductoCatalogoPublicoDto> productos = new();
+    private List<LineaCarrito> carrito = new();
+
+    private int sucursalSeleccionada;
+    private string busqueda = string.Empty;
+    private string categoriaSeleccionada = string.Empty;
+    private string? mensajeError;
+    private bool cargando = true;
+
+    private List<string> categorias =>
+        productos
+            .Select(p => p.CategoriaNombre)
+            .Where(c => !string.IsNullOrWhiteSpace(c))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .OrderBy(c => c)
+            .ToList();
+
+    private List<ProductoCatalogoPublicoDto> productosFiltrados =>
+        productos
+            .Where(p =>
+                string.IsNullOrWhiteSpace(busqueda) ||
+                p.Nombre.Contains(busqueda.Trim(), StringComparison.OrdinalIgnoreCase) ||
+                (p.Descripcion?.Contains(
+                    busqueda.Trim(),
+                    StringComparison.OrdinalIgnoreCase) ?? false))
+            .Where(p =>
+                string.IsNullOrWhiteSpace(categoriaSeleccionada) ||
+                string.Equals(
+                    p.CategoriaNombre,
+                    categoriaSeleccionada,
+                    StringComparison.OrdinalIgnoreCase))
+            .ToList();
+
+    private int CantidadTotal => carrito.Sum(l => l.Cantidad);
+
+    private decimal Subtotal =>
+        carrito.Sum(l => l.Producto.PrecioVenta * l.Cantidad);
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            sucursales = (await CatalogoRepository
+                .ObtenerSucursalesActivasAsync()).ToList();
+
+            if (sucursales.Count == 1)
+            {
+                sucursalSeleccionada = sucursales[0].Id;
+                await CargarProductosAsync();
+            }
+        }
+        catch
+        {
+            mensajeError = "No fue posible cargar las sucursales. Intenta nuevamente más tarde.";
+        }
+        finally
+        {
+            cargando = false;
+        }
+    }
+
+    private async Task CambiarSucursal(ChangeEventArgs args)
+    {
+        if (!int.TryParse(args.Value?.ToString(), out var id) ||
+            !sucursales.Any(s => s.Id == id))
+        {
+            sucursalSeleccionada = 0;
+            productos.Clear();
+            carrito.Clear();
+            categoriaSeleccionada = string.Empty;
+            mensajeError = null;
+            return;
+        }
+
+        sucursalSeleccionada = id;
+        carrito.Clear();
+        categoriaSeleccionada = string.Empty;
+        busqueda = string.Empty;
+        mensajeError = null;
+        cargando = true;
+
+        try
+        {
+            await CargarProductosAsync();
+        }
+        catch
+        {
+            productos.Clear();
+            mensajeError = "No fue posible cargar el catálogo de esta sucursal.";
+        }
+        finally
+        {
+            cargando = false;
+        }
+    }
+
+    private async Task CargarProductosAsync()
+    {
+        productos = (await CatalogoRepository
+            .ObtenerProductosAsync(sucursalSeleccionada)).ToList();
+    }
+
+    private void AgregarAlCarrito(int productoId)
+    {
+        var producto = productos.FirstOrDefault(p =>
+            p.Id == productoId && p.Disponible);
+
+        if (producto is null)
+        {
+            return;
+        }
+
+        var linea = carrito.FirstOrDefault(l =>
+            l.Producto.Id == productoId);
+
+        if (linea is not null)
+        {
+            if (linea.Cantidad < 99)
+            {
+                linea.Cantidad++;
+            }
+
+            return;
+        }
+
+        carrito.Add(new LineaCarrito
+        {
+            Producto = producto,
+            Cantidad = 1
+        });
+    }
+
+    private void CambiarCantidad(int productoId, int cambio)
+    {
+        var linea = carrito.FirstOrDefault(l =>
+            l.Producto.Id == productoId);
+
+        if (linea is null)
+        {
+            return;
+        }
+
+        var nuevaCantidad = linea.Cantidad + cambio;
+
+        if (nuevaCantidad >= 1 && nuevaCantidad <= 99)
+        {
+            linea.Cantidad = nuevaCantidad;
+        }
+    }
+
+    private void QuitarDelCarrito(int productoId)
+    {
+        carrito.RemoveAll(l => l.Producto.Id == productoId);
+    }
+
+    private void VaciarCarrito()
+    {
+        carrito.Clear();
+    }
+
+    private void PrepararCotizacion()
+    {
+        if (carrito.Count == 0)
+        {
+            return;
+        }
+
+        var sucursal = sucursales.FirstOrDefault(s =>
+            s.Id == sucursalSeleccionada);
+
+        if (sucursal is null)
+        {
+            mensajeError = "Selecciona una sucursal válida antes de preparar la cotización.";
+            return;
+        }
+
+        var mensaje = new System.Text.StringBuilder();
+        mensaje.AppendLine("Hola, quiero solicitar una cotización.");
+        mensaje.AppendLine();
+        mensaje.AppendLine($"Sucursal: {sucursal.Nombre}");
+        mensaje.AppendLine();
+        mensaje.AppendLine("Productos:");
+
+        foreach (var linea in carrito)
+        {
+            mensaje.AppendLine(
+                $"- {linea.Producto.Nombre} x {linea.Cantidad} = " +
+                FormatoPrecio(linea.Producto.PrecioVenta * linea.Cantidad));
+        }
+
+        mensaje.AppendLine();
+        mensaje.AppendLine($"Subtotal estimado: {FormatoPrecio(Subtotal)}");
+        mensaje.AppendLine();
+        mensaje.AppendLine("Por favor, confirmen precio y disponibilidad. Entiendo que esto es una cotización, no una compra confirmada.");
+
+        var url = $"https://wa.me/{NumeroWhatsApp}?text={Uri.EscapeDataString(mensaje.ToString())}";
+        Navigation.NavigateTo(url, forceLoad: true);
+    }
+
+    private static string FormatoPrecio(decimal precio) =>
+        precio.ToString("C2", CulturaRD);
+
+    private sealed class LineaCarrito
+    {
+        public required ProductoCatalogoPublicoDto Producto { get; init; }
+
+        public int Cantidad { get; set; }
+    }
+}

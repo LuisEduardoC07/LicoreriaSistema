@@ -1,4 +1,4 @@
-﻿using LibreriaSistema.Aplicacion.Interfaces;
+using LibreriaSistema.Aplicacion.Interfaces;
 using LicoreriaSistema.Datos.Context;
 using LicoreriaSistema.Dominio.Entidades;
 using Microsoft.EntityFrameworkCore;
@@ -125,6 +125,9 @@ public class ProductoRepository : IProductoRepository
                     .SetProperty(
                         p => p.CategoriaId,
                         producto.CategoriaId)
+                    .SetProperty(
+                        p => p.ImagenUrl,
+                        producto.ImagenUrl)
                     .SetProperty(
                         p => p.Activo,
                         producto.Activo),

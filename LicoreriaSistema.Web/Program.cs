@@ -1,4 +1,4 @@
-﻿using LibreriaSistema.Aplicacion.Interfaces;
+using LibreriaSistema.Aplicacion.Interfaces;
 using LicoreriaSistema.Datos.Context;
 using LicoreriaSistema.Datos.Data;
 using LicoreriaSistema.Datos.Extensions;
@@ -12,6 +12,13 @@ using Microsoft.AspNetCore.Components.Authorization;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDatos(builder.Configuration);
+
+builder.Services.AddHttpClient<LicoreriaSistema.Web.Servicios.OpenFoodFactsImagenService>(client =>
+{
+    client.BaseAddress = new Uri("https://world.openfoodfacts.org/");
+    client.DefaultRequestHeaders.UserAgent.ParseAdd("LicoreriaSistema/1.0");
+    client.Timeout = TimeSpan.FromSeconds(12);
+});
 
 // ============================================================
 // AUTENTICACION Y AUTORIZACION
@@ -167,6 +174,11 @@ app.Use(async (context, next) =>
             "/api/auth/login",
             StringComparison.OrdinalIgnoreCase);
 
+    var esTienda =
+        path.Equals(
+            "/tienda",
+            StringComparison.OrdinalIgnoreCase);
+
     var usuarioAutenticado =
         context.User.Identity?.IsAuthenticated == true;
 
@@ -185,6 +197,7 @@ app.Use(async (context, next) =>
     if (!usuarioAutenticado &&
         !esLogin &&
         !esLoginApi &&
+        !esTienda &&
         metodoPagina &&
         aceptaHtml)
     {

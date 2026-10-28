@@ -1,4 +1,4 @@
-﻿using LibreriaSistema.Aplicacion.Interfaces;
+using LibreriaSistema.Aplicacion.Interfaces;
 using LibreriaSistema.Aplicacion.Seguridad;
 using LicoreriaSistema.Dominio.Entidades;
 
@@ -53,7 +53,8 @@ public class ProductoService
         decimal precioCompra,
         decimal precioVenta,
         int categoriaId,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        string? imagenUrl = null)
     {
         if (!TienePermiso(
                 PermisosSistema.ProductosGestionar))
@@ -66,6 +67,7 @@ public class ProductoService
         nombre = nombre.Trim();
         codigo = codigo.Trim();
         descripcion = descripcion?.Trim();
+        imagenUrl = NormalizarImagenUrl(imagenUrl);
 
         var validacion =
             await ValidarDatosAsync(
@@ -101,6 +103,7 @@ public class ProductoService
             PrecioCompra = precioCompra,
             PrecioVenta = precioVenta,
             CategoriaId = categoriaId,
+            ImagenUrl = imagenUrl,
             Activo = true
         };
 
@@ -125,7 +128,8 @@ public class ProductoService
         decimal precioVenta,
         int categoriaId,
         bool activo,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        string? imagenUrl = null)
     {
         if (!TienePermiso(
                 PermisosSistema.ProductosGestionar))
@@ -138,6 +142,11 @@ public class ProductoService
         nombre = nombre.Trim();
         codigo = codigo.Trim();
         descripcion = descripcion?.Trim();
+
+        if (imagenUrl is not null)
+        {
+            imagenUrl = NormalizarImagenUrl(imagenUrl);
+        }
 
         if (id <= 0)
         {
@@ -190,6 +199,12 @@ public class ProductoService
         producto.PrecioCompra = precioCompra;
         producto.PrecioVenta = precioVenta;
         producto.CategoriaId = categoriaId;
+
+        if (imagenUrl is not null)
+        {
+            producto.ImagenUrl = imagenUrl;
+        }
+
         producto.Activo = activo;
 
         await _productoRepository.ActualizarAsync(
@@ -388,6 +403,25 @@ public class ProductoService
             throw new UnauthorizedAccessException(
                 "El usuario actual no tiene permisos para realizar esta operación.");
         }
+    }
+
+    private static string? NormalizarImagenUrl(string? imagenUrl)
+    {
+        if (string.IsNullOrWhiteSpace(imagenUrl))
+            return null;
+
+        imagenUrl = imagenUrl.Trim();
+
+        if (imagenUrl.Length > 1000 ||
+            !Uri.TryCreate(imagenUrl, UriKind.Absolute, out var uri) ||
+            (uri.Scheme != Uri.UriSchemeHttp &&
+             uri.Scheme != Uri.UriSchemeHttps))
+        {
+            throw new ArgumentException(
+                "La imagen debe tener una URL HTTP o HTTPS válida de hasta 1000 caracteres.");
+        }
+
+        return uri.AbsoluteUri;
     }
 }
 

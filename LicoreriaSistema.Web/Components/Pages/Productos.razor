@@ -1,4 +1,4 @@
-﻿@page "/productos"
+@page "/productos"
 
 
 @attribute [Authorize(Policy = "Permiso:PRODUCTOS_CONSULTAR")]
@@ -11,6 +11,7 @@
 
 @inject ProductoService ProductoService
 @inject CategoriaService CategoriaService
+@inject LicoreriaSistema.Web.Servicios.OpenFoodFactsImagenService OpenFoodFactsImagenService
 
 <PageTitle>Productos</PageTitle>
 
@@ -20,7 +21,7 @@
         <div>
             <h1>Productos</h1>
             <p class="page-subtitle">
-                Administra los productos y códigos de barras de la licorería.
+                Administra los productos y cÃ³digos de barras de la licorerÃ­a.
             </p>
         </div>
 
@@ -41,7 +42,7 @@
             <button type="button"
                     class="alert-close"
                     @onclick="LimpiarMensaje">
-                ×
+                Ã—
             </button>
         </div>
     }
@@ -49,11 +50,11 @@
     <div class="toolbar-card">
 
         <div class="search-box">
-            <span class="search-icon">⌕</span>
+            <span class="search-icon">âŒ•</span>
 
             <input type="text"
                    class="form-control"
-                   placeholder="Buscar por nombre o código de barras..."
+                   placeholder="Buscar por nombre o cÃ³digo de barras..."
                    @bind="TextoBusqueda"
                    @bind:event="oninput" />
         </div>
@@ -62,7 +63,7 @@
 
             <select class="form-select category-filter"
                     @bind="CategoriaFiltro">
-                <option value="0">Todas las categorías</option>
+                <option value="0">Todas las categorÃ­as</option>
 
                 @foreach (var categoria in ListaCategorias.OrderBy(c => c.Nombre))
                 {
@@ -105,8 +106,8 @@
 
                     <p>
                         @(Editando
-                            ? "Actualiza la información del producto."
-                            : "Registra un producto y su código de barras.")
+                            ? "Actualiza la informaciÃ³n del producto."
+                            : "Registra un producto y su cÃ³digo de barras.")
                     </p>
                 </div>
 
@@ -114,7 +115,7 @@
                         class="btn-close-custom"
                         title="Cerrar"
                         @onclick="CancelarFormulario">
-                    ×
+                    Ã—
                 </button>
 
             </div>
@@ -147,7 +148,7 @@
                 <div class="form-field">
 
                     <label for="codigoProducto">
-                        Código de barras <span class="required">*</span>
+                        CÃ³digo de barras <span class="required">*</span>
                     </label>
 
                     <input id="codigoProducto"
@@ -156,18 +157,18 @@
                            maxlength="50"
                            inputmode="numeric"
                            autocomplete="off"
-                           placeholder="Escanea o escribe el código"
+                           placeholder="Escanea o escribe el cÃ³digo"
                            @bind="CodigoFormulario"
                            @bind:event="oninput" />
 
                     <div class="field-help">
-                        Este campo está preparado para lectores USB/Bluetooth.
+                        Este campo estÃ¡ preparado para lectores USB/Bluetooth.
                     </div>
 
                     @if (MostrarErrorCodigo)
                     {
                         <div class="field-error">
-                            El código de barras es obligatorio.
+                            El cÃ³digo de barras es obligatorio.
                         </div>
                     }
 
@@ -176,7 +177,7 @@
                 <div class="form-field">
 
                     <label for="categoriaProducto">
-                        Categoría <span class="required">*</span>
+                        CategorÃ­a <span class="required">*</span>
                     </label>
 
                     <select id="categoriaProducto"
@@ -184,7 +185,7 @@
                             @bind="CategoriaFormulario">
 
                         <option value="0">
-                            Seleccionar categoría
+                            Seleccionar categorÃ­a
                         </option>
 
                         @foreach (var categoria in ListaCategorias.OrderBy(c => c.Nombre))
@@ -200,7 +201,7 @@
                     @if (MostrarErrorCategoria)
                     {
                         <div class="field-error">
-                            Debes seleccionar una categoría.
+                            Debes seleccionar una categorÃ­a.
                         </div>
                     }
 
@@ -236,17 +237,141 @@
 
                 </div>
 
+<div class="form-field field-wide">
+    <label for="buscarImagenProducto">Buscar imagen en Open Food Facts</label>
+
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <input id="buscarImagenProducto"
+               type="text"
+               class="form-control"
+               placeholder="Nombre del producto o código de barras"
+               @bind="TextoBusquedaImagen"
+               @bind:event="oninput" />
+
+        <button type="button"
+                class="btn btn-secondary"
+                @onclick="BuscarImagenesAsync"
+                disabled="@BuscandoImagenes">
+            @(BuscandoImagenes ? "Buscando..." : "Buscar imágenes")
+        </button>
+    </div>
+
+    <div class="field-help">
+        Se buscará primero por código de barras y, si no hay imágenes,
+        por nombre. Revisa cada resultado antes de seleccionarlo.
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(ErrorBusquedaImagen))
+    {
+        <p role="alert" style="color:#b42318;">
+            @ErrorBusquedaImagen
+        </p>
+    }
+
+    @if (CandidatosImagen.Count > 0)
+    {
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px;margin-top:12px;">
+            @foreach (var candidato in CandidatosImagen)
+            {
+                <div @key="candidato.Url"
+                     style="border:1px solid #d0d5dd;border-radius:8px;padding:10px;">
+                    <img src="@candidato.Url"
+                         alt="@candidato.Nombre"
+                         loading="lazy"
+                         style="width:100%;height:150px;object-fit:contain;"
+                         onerror="this.style.display='none';" />
+
+                    <div style="font-weight:600;margin-top:8px;">
+                        @candidato.Nombre
+                    </div>
+
+                    @if (!string.IsNullOrWhiteSpace(candidato.Marca))
+                    {
+                        <div class="field-help">Marca: @candidato.Marca</div>
+                    }
+
+                    @if (!string.IsNullOrWhiteSpace(candidato.Codigo))
+                    {
+                        <div class="field-help">Código: @candidato.Codigo</div>
+                    }
+
+                    <button type="button"
+                            class="btn btn-secondary"
+                            style="margin-top:8px;width:100%;"
+                            @onclick="() => SeleccionarCandidatoImagen(candidato)">
+                        @(CandidatoImagenSeleccionado?.Url == candidato.Url
+                            ? "Seleccionado"
+                            : "Seleccionar")
+                    </button>
+                </div>
+            }
+        </div>
+
+        @if (CandidatoImagenSeleccionado is not null)
+        {
+            <div style="margin-top:12px;">
+                <p>
+                    Selección:
+                    <strong>@CandidatoImagenSeleccionado.Nombre</strong>
+                </p>
+                <button type="button"
+                        class="btn btn-primary"
+                        @onclick="UsarImagenSeleccionada">
+                    Usar esta imagen
+                </button>
+            </div>
+        }
+    }
+    else if (BusquedaRealizada && string.IsNullOrWhiteSpace(ErrorBusquedaImagen))
+    {
+        <p class="field-help">
+            No se encontraron imágenes. Puedes probar con otro nombre o introducir una URL manualmente.
+        </p>
+    }
+</div>
+                <div class="form-field field-wide image-url-field">
+                    <label for="imagenUrlProducto">Imagen del producto (URL)</label>
+
+                    <input id="imagenUrlProducto"
+                           type="url"
+                           class="form-control"
+                           maxlength="1000"
+                           placeholder="https://ejemplo.com/imagen.jpg"
+                           @bind="ImagenUrlFormulario"
+                           @bind:event="oninput" />
+
+                    <div class="field-help">
+                        Introduce una URL HTTPS/HTTP. La imagen se guardarÃ¡ junto con el producto.
+                    </div>
+
+                    @if (!string.IsNullOrWhiteSpace(ImagenUrlFormulario))
+                    {
+                        <div class="image-url-preview">
+                            <img src="@ImagenUrlFormulario"
+                                 alt="Vista previa del producto"
+                                 style="max-width:180px;max-height:180px;object-fit:contain;"
+                                 onerror="this.style.display='none';" />
+
+                            <button type="button"
+                                    class="btn btn-secondary"
+                                    @onclick="QuitarImagenFormulario">
+                                Quitar imagen
+                            </button>
+                        </div>
+                    }
+                </div>
+
                 <div class="form-field field-wide">
 
                     <label for="descripcionProducto">
-                        Descripción
+                        DescripciÃ³n
                     </label>
 
                     <textarea id="descripcionProducto"
                               class="form-control"
                               maxlength="250"
                               rows="3"
-                              placeholder="Descripción del producto"
+                              placeholder="DescripciÃ³n del producto"
                               @bind="DescripcionFormulario"
                               @bind:event="oninput"></textarea>
 
@@ -305,14 +430,14 @@
         {
             <div class="empty-state">
 
-                <div class="empty-icon">▦</div>
+                <div class="empty-icon">â–¦</div>
 
                 <h3>No hay productos</h3>
 
                 <p>
                     @(string.IsNullOrWhiteSpace(TextoBusqueda)
-                        ? "Todavía no se han registrado productos."
-                        : "No encontramos productos que coincidan con la búsqueda.")
+                        ? "TodavÃ­a no se han registrado productos."
+                        : "No encontramos productos que coincidan con la bÃºsqueda.")
                 </p>
 
                 @if (string.IsNullOrWhiteSpace(TextoBusqueda))
@@ -335,8 +460,8 @@
                     <thead>
                         <tr>
                             <th>Producto</th>
-                            <th>Código de barras</th>
-                            <th>Categoría</th>
+                            <th>CÃ³digo de barras</th>
+                            <th>CategorÃ­a</th>
                             <th class="text-end">Compra</th>
                             <th class="text-end">Venta</th>
                             <th class="text-center">Estado</th>
@@ -491,6 +616,14 @@
 
     private string DescripcionFormulario { get; set; } = string.Empty;
 
+    private string? ImagenUrlFormulario { get; set; }
+    private string TextoBusquedaImagen { get; set; } = string.Empty;
+    private List<LicoreriaSistema.Web.Servicios.CandidatoImagenProducto> CandidatosImagen { get; set; } = new();
+    private LicoreriaSistema.Web.Servicios.CandidatoImagenProducto? CandidatoImagenSeleccionado { get; set; }
+    private bool BuscandoImagenes { get; set; }
+    private bool BusquedaRealizada { get; set; }
+    private string? ErrorBusquedaImagen { get; set; }
+
     private decimal PrecioCompraFormulario { get; set; }
 
     private decimal PrecioVentaFormulario { get; set; }
@@ -593,6 +726,12 @@
         NombreFormulario = string.Empty;
         CodigoFormulario = string.Empty;
         DescripcionFormulario = string.Empty;
+        ImagenUrlFormulario = null;
+        TextoBusquedaImagen = string.Empty;
+        CandidatosImagen.Clear();
+        CandidatoImagenSeleccionado = null;
+        BusquedaRealizada = false;
+        ErrorBusquedaImagen = null;
 
         PrecioCompraFormulario = 0;
         PrecioVentaFormulario = 0;
@@ -617,6 +756,12 @@
         NombreFormulario = producto.Nombre;
         CodigoFormulario = producto.Codigo;
         DescripcionFormulario = producto.Descripcion ?? string.Empty;
+        ImagenUrlFormulario = producto.ImagenUrl;
+        TextoBusquedaImagen = string.Empty;
+        CandidatosImagen.Clear();
+        CandidatoImagenSeleccionado = null;
+        BusquedaRealizada = false;
+        ErrorBusquedaImagen = null;
 
         PrecioCompraFormulario = producto.PrecioCompra;
         PrecioVentaFormulario = producto.PrecioVenta;
@@ -642,6 +787,12 @@
         NombreFormulario = string.Empty;
         CodigoFormulario = string.Empty;
         DescripcionFormulario = string.Empty;
+        ImagenUrlFormulario = null;
+        TextoBusquedaImagen = string.Empty;
+        CandidatosImagen.Clear();
+        CandidatoImagenSeleccionado = null;
+        BusquedaRealizada = false;
+        ErrorBusquedaImagen = null;
 
         PrecioCompraFormulario = 0;
         PrecioVentaFormulario = 0;
@@ -691,7 +842,8 @@
                     PrecioCompraFormulario,
                     PrecioVentaFormulario,
                     CategoriaFormulario,
-                    ActivoFormulario)
+                    ActivoFormulario,
+                    imagenUrl: ObtenerImagenUrlValidada())
 
                 : await ProductoService.CrearAsync(
                     NombreFormulario,
@@ -699,7 +851,8 @@
                     DescripcionFormulario,
                     PrecioCompraFormulario,
                     PrecioVentaFormulario,
-                    CategoriaFormulario);
+                    CategoriaFormulario,
+                    imagenUrl: ObtenerImagenUrlValidada());
 
             MostrarMensaje(
                 resultado.Exitoso,
@@ -716,12 +869,119 @@
         {
             MostrarMensaje(
                 false,
-                $"Ocurrió un error al guardar el producto: {ex.Message}");
+                $"OcurriÃ³ un error al guardar el producto: {ex.Message}");
         }
         finally
         {
             Guardando = false;
         }
+    }
+
+    private async Task BuscarImagenesAsync()
+    {
+        if (BuscandoImagenes)
+            return;
+
+        BuscandoImagenes = true;
+        BusquedaRealizada = false;
+        ErrorBusquedaImagen = null;
+        CandidatosImagen.Clear();
+        CandidatoImagenSeleccionado = null;
+
+        try
+        {
+            var termino = TextoBusquedaImagen.Trim();
+            var soloDigitos = new string(termino.Where(char.IsDigit).ToArray());
+            IReadOnlyList<LicoreriaSistema.Web.Servicios.CandidatoImagenProducto> resultados =
+                Array.Empty<LicoreriaSistema.Web.Servicios.CandidatoImagenProducto>();
+
+            // Primero se intenta una búsqueda exacta por código de barras.
+            if (soloDigitos.Length >= 8 && soloDigitos.Length <= 14)
+            {
+                resultados = await OpenFoodFactsImagenService.BuscarPorCodigoAsync(soloDigitos);
+            }
+
+            // Si no hay resultados con imagen, se busca por nombre.
+            if (resultados.Count == 0)
+            {
+                var nombreBusqueda = string.IsNullOrWhiteSpace(termino)
+                    ? NombreFormulario.Trim()
+                    : termino;
+
+                resultados = await OpenFoodFactsImagenService.BuscarPorNombreAsync(nombreBusqueda);
+            }
+
+            CandidatosImagen = resultados.ToList();
+            BusquedaRealizada = true;
+        }
+        catch (HttpRequestException)
+        {
+            ErrorBusquedaImagen =
+                "No se pudo conectar con Open Food Facts. Comprueba la conexión e inténtalo de nuevo.";
+        }
+        catch (TaskCanceledException)
+        {
+            ErrorBusquedaImagen =
+                "La búsqueda tardó demasiado. Inténtalo de nuevo.";
+        }
+        catch (System.Text.Json.JsonException)
+        {
+            ErrorBusquedaImagen =
+                "El servicio devolvió una respuesta que no se pudo interpretar.";
+        }
+        catch (Exception ex)
+        {
+            ErrorBusquedaImagen =
+                $"No se pudo completar la búsqueda: {ex.Message}";
+        }
+        finally
+        {
+            BuscandoImagenes = false;
+        }
+    }
+
+    private void SeleccionarCandidatoImagen(
+        LicoreriaSistema.Web.Servicios.CandidatoImagenProducto candidato)
+    {
+        CandidatoImagenSeleccionado = candidato;
+    }
+
+    private void UsarImagenSeleccionada()
+    {
+        if (CandidatoImagenSeleccionado is null)
+            return;
+
+        ImagenUrlFormulario = CandidatoImagenSeleccionado.Url;
+    }
+    private string? ObtenerImagenUrlValidada()
+    {
+        if (string.IsNullOrWhiteSpace(ImagenUrlFormulario))
+        {
+            return string.Empty;
+        }
+
+        var valor = ImagenUrlFormulario.Trim();
+
+        if (valor.Length > 1000 ||
+            !Uri.TryCreate(valor, UriKind.Absolute, out var uri) ||
+            (uri.Scheme != Uri.UriSchemeHttp &&
+             uri.Scheme != Uri.UriSchemeHttps))
+        {
+            throw new ArgumentException(
+                "La imagen debe tener una URL HTTP o HTTPS vÃ¡lida de hasta 1000 caracteres.");
+        }
+
+        return uri.AbsoluteUri;
+    }
+
+    private void QuitarImagenFormulario()
+    {
+        ImagenUrlFormulario = null;
+        TextoBusquedaImagen = string.Empty;
+        CandidatosImagen.Clear();
+        CandidatoImagenSeleccionado = null;
+        BusquedaRealizada = false;
+        ErrorBusquedaImagen = null;
     }
 
     private async Task CambiarEstado(
@@ -775,4 +1035,3 @@
         MensajeExitoso = false;
     }
 }
-

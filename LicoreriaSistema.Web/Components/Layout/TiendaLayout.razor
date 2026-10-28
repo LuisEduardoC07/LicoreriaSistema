@@ -1,0 +1,30 @@
+﻿@inherits LayoutComponentBase
+
+<div class="tienda-shell">
+    <header class="tienda-header">
+        <a class="tienda-brand" href="/tienda" aria-label="Ir a la tienda">
+            <span class="tienda-brand-mark">LS</span>
+            <span class="tienda-brand-text">
+                <strong>LICORERÍA</strong>
+                <small>SISTEMA</small>
+            </span>
+        </a>
+
+        <div class="tienda-header-message">
+            Tu tienda de confianza
+        </div>
+
+        <a class="tienda-login-link" href="/login">
+            Iniciar sesión
+        </a>
+    </header>
+
+    <main class="tienda-main">
+        @Body
+    </main>
+
+    <footer class="tienda-footer">
+        <span>LICORERÍA SISTEMA</span>
+        <span>Consulta disponibilidad y solicita tu cotización por WhatsApp.</span>
+    </footer>
+</div>

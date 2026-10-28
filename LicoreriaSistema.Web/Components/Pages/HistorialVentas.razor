@@ -1388,8 +1388,11 @@
         decimal Total,
         int CantidadVentas);
 
-    private List<ResumenSucursal> ResumenPorSucursal =>
-        Ventas
+    private List<ResumenSucursal> ResumenPorSucursal { get; set; } = new();
+
+    private void ActualizarResumenPorSucursal()
+    {
+        ResumenPorSucursal = Ventas
             .GroupBy(v => new
             {
                 v.SucursalId,
@@ -1404,22 +1407,31 @@
                 g.Count()))
             .OrderByDescending(s => s.Total)
             .ToList();
+    }
 
-    private IReadOnlyList<Venta> VentasVisibles =>
-        SucursalSeleccionadaId.HasValue
-            ? Ventas.Where(v => v.SucursalId == SucursalSeleccionadaId.Value).ToList()
-            : Ventas;
+    private IReadOnlyList<Venta> VentasVisibles { get; set; } = Array.Empty<Venta>();
 
-    private decimal TotalVendido =>
-        VentasVisibles.Sum(v => v.Total);
+    private decimal TotalVendido { get; set; }
 
     private decimal TicketPromedio =>
         VentasVisibles.Count == 0
             ? 0m
             : TotalVendido / VentasVisibles.Count;
 
-    private int SucursalesConVentas =>
-        VentasVisibles.Select(v => v.SucursalId).Distinct().Count();
+    private int SucursalesConVentas { get; set; }
+
+    private void ActualizarVentasVisibles()
+    {
+        VentasVisibles = SucursalSeleccionadaId.HasValue
+            ? Ventas.Where(v => v.SucursalId == SucursalSeleccionadaId.Value).ToList()
+            : Ventas;
+
+        TotalVendido = VentasVisibles.Sum(v => v.Total);
+        SucursalesConVentas = VentasVisibles
+            .Select(v => v.SucursalId)
+            .Distinct()
+            .Count();
+    }
 
     private decimal MaximoVentasSucursal =>
         ResumenPorSucursal.Count == 0
@@ -1453,11 +1465,13 @@
     private void SeleccionarSucursal(int sucursalId)
     {
         SucursalSeleccionadaId = sucursalId;
+        ActualizarVentasVisibles();
     }
 
     private void MostrarTodasLasSucursales()
     {
         SucursalSeleccionadaId = null;
+        ActualizarVentasVisibles();
     }
 
     private string RutaPastel(int indice)
@@ -1514,6 +1528,8 @@
                 Filtro.Desde.Value.Date > Filtro.Hasta.Value.Date)
             {
                 Ventas = Array.Empty<Venta>();
+                ActualizarResumenPorSucursal();
+                ActualizarVentasVisibles();
 
                 MostrarMensaje(
                     true,
@@ -1524,15 +1540,22 @@
 
             Ventas =
                 await VentaService.ObtenerHistorialAsync(Filtro);
+
+            ActualizarResumenPorSucursal();
+            ActualizarVentasVisibles();
         }
         catch (UnauthorizedAccessException ex)
         {
             Ventas = Array.Empty<Venta>();
+            ActualizarResumenPorSucursal();
+            ActualizarVentasVisibles();
             MostrarMensaje(true, ex.Message);
         }
         catch (Exception ex)
         {
             Ventas = Array.Empty<Venta>();
+            ActualizarResumenPorSucursal();
+            ActualizarVentasVisibles();
 
             MostrarMensaje(
                 true,

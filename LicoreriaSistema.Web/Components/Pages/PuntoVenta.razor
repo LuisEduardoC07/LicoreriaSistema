@@ -1,4 +1,4 @@
-﻿@page "/punto-de-venta"
+@page "/punto-de-venta"
 
 @attribute [Authorize]
 @rendermode InteractiveServer
@@ -860,23 +860,9 @@ private InventarioSucursal? ObtenerDatosCarrito(int productoId)
 
     private static string? ObtenerImagenUrl(Producto producto)
     {
-        if (!string.IsNullOrWhiteSpace(producto.ImagenUrl))
-            return producto.ImagenUrl.Trim();
-
-        var codigo = new string((producto.Codigo ?? string.Empty).Where(char.IsDigit).ToArray());
-
-        if (codigo.Length < 8)
-            return null;
-
-        var grupos = new[]
-        {
-            codigo.Length >= 3 ? codigo[..3] : "0",
-            codigo.Length >= 6 ? codigo.Substring(3, 3) : "0",
-            codigo.Length >= 9 ? codigo.Substring(6, 3) : "0",
-            codigo.Length > 9 ? codigo[9..] : codigo
-        };
-
-        return $"https://images.openfoodfacts.org/images/products/{string.Join("/", grupos)}/front_en.400.jpg";
+        return string.IsNullOrWhiteSpace(producto.ImagenUrl)
+            ? null
+            : producto.ImagenUrl.Trim();
     }
 
 
@@ -895,6 +881,3 @@ private InventarioSucursal? ObtenerDatosCarrito(int productoId)
         MensajeExitoso = false;
     }
 }
-
-
-

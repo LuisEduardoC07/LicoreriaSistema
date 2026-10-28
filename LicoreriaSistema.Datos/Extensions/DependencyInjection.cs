@@ -1,4 +1,4 @@
-﻿using LibreriaSistema.Aplicacion.Interfaces;
+using LibreriaSistema.Aplicacion.Interfaces;
 using LibreriaSistema.Aplicacion.Servicios;
 using LicoreriaSistema.Datos.Context;
 using LicoreriaSistema.Datos.Repositorios;
@@ -42,6 +42,9 @@ public static class DependencyInjection
         services.AddScoped<
             IProductoRepository,
             ProductoRepository>();
+        services.AddScoped<
+            ICatalogoPublicoRepository,
+            CatalogoPublicoRepository>();
 
         services.AddScoped<
             IInventarioRepository,
@@ -76,5 +79,3 @@ public static class DependencyInjection
         return services;
     }
 }
-
-
